@@ -77,9 +77,16 @@ The script will create a file 'test.dbf' in the 'db' directory if it doesn't exi
 
 By issuing the command:
 ```bash
-python3 -m pybase3
+python3 -m pybase3 [-v|-i|-h]
 ```
 the module itself is invoked (more specifically, __main__.py), resulting in a traversal of the file system lookinf for .dbf files. At the end, should the search be successful, the user is offered with a numbered menu of existing dbf files, ready to be read by dbfview.
+As of version 1.9.5 new options were added: -v, --version for retrieving current version of the software, -i, --info for getting full information, and -h, --help for usage instructions.
+A command line option ```pybase3``` was also added in version 1.9.5 , which works the same way as invoking the module, for example:
+```bash
+pybase3 [-v|-i|-h]
+```
+
+
 
 ### Comments
 
