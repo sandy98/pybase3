@@ -1,0 +1,16 @@
+.vscode/
+db/
+__pycache__/
+build/
+dist/
+pybase3.egg-info/
+docs/
+third-party/
+venv-dbase-iii/
+*.pyc
+*.pyo
+kids.url
+test.dbf
+test*.dbf
+setup.sh
+

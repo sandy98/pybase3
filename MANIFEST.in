@@ -1,0 +1,6 @@
+include README.md
+include README_es.md
+include README_it.md
+include LICENSE
+recursive-include pybase3 *.py
+
