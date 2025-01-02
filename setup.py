@@ -11,7 +11,6 @@ setup(
     author_email='esavoretti@gmail.com',
     url='https://github.com/sandy98/pybase3',
     packages=find_packages(),
-    # py_modules=['dbase3'],  # Asegúrate de incluir el módulo aquí
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
@@ -22,6 +21,7 @@ setup(
         'console_scripts': [
             'dbfview=pybase3.dbfview:main',
             'dbftest=pybase3.test:testdb',
+            'pybase3=pybase3.__main__:main',
         ],
     },    
 )

@@ -33,7 +33,7 @@ def testdb():
             dbg = True
         elif sys.argv[1] in ['-r', '--remove']:
             rm = True
-        else:
+        elif sys.argv[1] in ['-h', '--help'] or len(sys.argv[1]):   
             print("Usage: test.py [-d] [-r]")
             sys.exit(1)
 
@@ -84,7 +84,7 @@ def testdb():
 
     print("\nDatabase after updates:")
     print("\nTest.db\n-------")
-    for r in test:
+    for r in test[:]:
         print(r)
     if not dbg:
         input("\nPress Enter to continue...")

@@ -45,7 +45,7 @@ getDay = lambda: datetime.now().day
 class Record(Dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.deleted = False
+        # self.deleted = False
 
     def __repr__(self):
         return "\n".join(f"{k}: {v}" for k, v in self.items())
@@ -525,7 +525,7 @@ class DbaseFile:
             os.sys.stderr.write(f"{err_msg}\n")
             os.sys.stderr.flush()
             return None
-        to_be_deleted = rec_bytes[0] == 0x2A
+        to_be_deleted = (rec_bytes[0] == 0x2A)
         rec_bytes = rec_bytes[1:]
         record = Record({'deleted': to_be_deleted, 'offset': offset})
         for field in self.fields:
