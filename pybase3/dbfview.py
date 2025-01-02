@@ -24,8 +24,16 @@ def show(stdscr, title, subtitle, textlinesgen, length):
     """
     Shows a list of scrolling text lines under a title and subtitle in a curses window.
     """
-    textlines = list(textlinesgen)
-    max_line_length = reduce(lambda x, y: max(x, len(y)), textlines, 0)
+    def feed_lines(towhom, howmany=100):
+        for _ in range((howmany -2) * 10 + 1):
+            try:
+                towhom.append(next(textlinesgen))
+            except StopIteration:
+                break        
+
+    textlines = []
+    #textlines = list(textlinesgen)
+    # max_line_length = reduce(lambda x, y: max(x, len(y)), textlines, 0)
     curses.cbreak()
     stdscr.keypad(True)
 
@@ -44,6 +52,8 @@ def show(stdscr, title, subtitle, textlinesgen, length):
 
     # Draw the title and subtitle once
     height, width = stdscr.getmaxyx()
+    feed_lines(textlines, height)        
+
     stdscr.addstr(0, 0, title.center(width), curses.color_pair(3))
     stdscr.addstr(1, 0, subtitle.ljust(width)[:width-1], curses.color_pair(4))
 
@@ -55,6 +65,9 @@ def show(stdscr, title, subtitle, textlinesgen, length):
     while True:
         # Calculate the number of visible lines for scrolling, starting from the third line
         visible_lines = height - 2  # Leave the first 2 lines for the title and subtitle
+
+        if start_line + visible_lines > len(textlines):
+            feed_lines(textlines, height)
 
         # Adjust the start_line to ensure the cursor stays within the visible window
         if index < start_line:
