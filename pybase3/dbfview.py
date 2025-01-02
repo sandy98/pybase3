@@ -20,11 +20,11 @@ try:
 except ImportError:
     from dbase3 import DbaseFile
 
-def show(stdscr, title, subtitle, textlines, length):
+def show(stdscr, title, subtitle, textlinesgen, length):
     """
     Shows a list of scrolling text lines under a title and subtitle in a curses window.
     """
-    textlines = list(textlines)
+    textlines = list(textlinesgen)
     max_line_length = reduce(lambda x, y: max(x, len(y)), textlines, 0)
     curses.cbreak()
     stdscr.keypad(True)
