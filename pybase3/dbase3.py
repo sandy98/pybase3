@@ -12,6 +12,7 @@ Classes:
     DbaseHeader
     DbaseField
     Record
+    FieldType
 """
 
 # Title: dBase III File Reader and Writer
