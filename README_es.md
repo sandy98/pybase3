@@ -81,6 +81,13 @@ python3 -m pybase3
 ```
 se invoca el módulo en sí (más específicamente, __main__.py), lo que da como resultado un recorrido por el sistema de archivos en busca de archivos .dbf. Al final, si la búsqueda es exitosa, se le ofrece al usuario un menú numerado de archivos dbf existentes, listos para ser leídos por dbfview.
 
+A partir de la versión 1.9.5 se agregaron nuevas opciones: -v, --version para recuperar la versión actual del software, -i, --info para obtener información completa y -h, --help para obtener instrucciones de uso.
+
+También se agregó una opción de línea de comandos ```pybase3``` en la versión 1.9.5, que funciona de la misma manera que invocar el módulo, por ejemplo:
+```bash
+pybase3 [-v|-i|-h]
+```
+
 ### Comentarios
 
 El módulo en sí, la clase DBaseFile y todos sus métodos están completamente documentados, por lo que debería ser fácil seguirlo.
