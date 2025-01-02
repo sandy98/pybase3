@@ -387,7 +387,7 @@ class DbaseFile:
         and adjusts the header accordingly.
         """
         numdeleted = 0
-        for record in self[:]:
+        for record in self:
             if record.get('deleted'):
                 numdeleted += 1
         file = open('tmp.dbf', 'wb')
@@ -395,7 +395,7 @@ class DbaseFile:
         for field in self.fields:
             file.write(field.to_bytes())
         file.write(b'\x0D')
-        for record in self[:]:
+        for record in self:
             if record['deleted']:    
                 # self.file.write(b'*')
                 continue
