@@ -80,7 +80,9 @@ Emettendo il comando:
 python3 -m pybase3 [-v|-i|-h]
 ```
 viene richiamato il modulo stesso (più specificamente, __main__.py), con conseguente attraversamento del file system alla ricerca di file .dbf. Alla fine, se la ricerca ha esito positivo, all'utente viene offerto un menu numerato di file dbf esistenti, pronti per essere letti da dbfview.
+
 A partire dalla versione 1.9.5 sono state aggiunte nuove opzioni: -v, --version per recuperare la versione corrente del software, -i, --info per ottenere informazioni complete e -h, --help per le istruzioni d'uso.
+
 Un'opzione della riga di comando ```pybase3``` è stata aggiunta anche nella versione 1.9.5, che funziona allo stesso modo dell'invocazione del modulo, ad esempio:
 ```bash
 pybase3 [-v|-i|-h]
