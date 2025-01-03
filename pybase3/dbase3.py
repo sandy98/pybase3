@@ -727,11 +727,15 @@ class DbaseFile:
             stop = self.header.records
         l = records or [self.get_record(i) for i in range(start, stop)]
         top_line = BoxType.UP_L.value + BoxType.T_DOWN.value.join(BoxType.HORZ.value * (field.length + 2) for field in self.fields) + BoxType.UP_R.value + "\n"
-        line_divider = BoxType.T_L.value + BoxType.CROSS.value.join(BoxType.HORZ.value * (field.length + 2) for field in self.fields) + BoxType.T_R.value + "\n"       
+        line_divider = BoxType.T_L.value + BoxType.CROSS.value.join(BoxType.HORZ.value * (field.length + 2) for field in self.fields) + BoxType.T_R.value       
         header_line = BoxType.VERT.value + BoxType.VERT.value.join(field.name.center(field.length + 2) for field in self.fields) + BoxType.VERT.value + "\n"
         bot_line = BoxType.DOWN_L.value + BoxType.T_UP.value.join(BoxType.HORZ.value * (field.length + 2) for field in self.fields) + BoxType.DOWN_R.value + "\n" 
-        record_lines =  ('\n' + line_divider).join(BoxType.VERT.value + BoxType.VERT.value.join(_format_field(field, record) for field in self.fields) + BoxType.VERT.value for record in l)
-        return top_line + header_line + line_divider + record_lines + "\n" + bot_line
+        # record_lines =  ('\n' + line_divider).join(BoxType.VERT.value + BoxType.VERT.value.join(_format_field(field, record) for field in self.fields) + BoxType.VERT.value for record in l)
+        # return top_line + header_line + line_divider + record_lines + "\n" + bot_line
+        yield top_line + header_line + line_divider
+        for record in l[:-1]:
+            yield BoxType.VERT.value + BoxType.VERT.value.join(_format_field(field, record) for field in self.fields) + BoxType.VERT.value + "\n" + line_divider
+        yield BoxType.VERT.value + BoxType.VERT.value.join(_format_field(field, l[-1]) for field in self.fields) + BoxType.VERT.value + "\n" + bot_line
 
     def line(self, index, fieldsep="", names_lengths:list=None):
         """
