@@ -70,7 +70,32 @@ class FieldType(Enum):
     # def __eq__(self, char):
     #     return self.value == to_bytes(char)   
 
+class BoxType(Enum):
+    UP_L = '\u250C'
+    UP_R = '\u2510'
+    DOWN_L = '\u2514'
+    DOWN_R = '\u2518'
+    HORZ = '\u2500'
+    VERT = '\u2502'
+    CROSS = '\u253C'
+    T_L = '\u251C'
+    T_R = '\u2524'
+    T_UP = '\u2534'
+    T_DOWN = '\u252C'
+    T_LEFT_RIGHT = '\u2534'
+    T_UP_DOWN = '\u252C'
+    T_ALL = '\u253C'
+    T_LEFT_UP = '\u251C'
+    T_LEFT_DOWN = '\u2514'
+    T_RIGHT_UP = '\u251C'
+    T_RIGHT_DOWN = '\u2518'
 
+    def __repr__(self):
+        return self.value
+    
+    def __str__(self):
+        return self.value
+    
 @dataclass
 class DbaseHeader:
     version: int = 3 # 1 byte
@@ -527,7 +552,7 @@ class DbaseFile:
             return None
         to_be_deleted = (rec_bytes[0] == 0x2A)
         rec_bytes = rec_bytes[1:]
-        record = Record({'deleted': to_be_deleted, 'offset': offset})
+        record = Record(deleted=to_be_deleted, metadata=Dict(offset=offset, index=key))
         for field in self.fields:
             fieldtype = field.type
             fieldname = field.name.strip("\0x00").strip()
@@ -666,7 +691,7 @@ class DbaseFile:
     
     def table(self, start=0, stop=None, records:list = None):
         """
-        Returns a table string with the records in the database.
+        Returns a table string with the records in the database, sqlite3 style.
         """
         def _format_field(field, record):
             if field.type == FieldType.CHARACTER.value:
@@ -684,6 +709,29 @@ class DbaseFile:
         header_line = "|" + "|".join(field.name.center(field.length + 2) for field in self.fields) + "|" + "\n"
         record_lines =  ('\n' + line_divider).join("|" + "|".join(_format_field(field, record) for field in self.fields) + "|" for record in l)
         return line_divider + header_line + line_divider + record_lines + "\n" + line_divider
+
+    def pretty_table(self, start=0, stop=None, records:list = None):
+        """
+        Returns a  string representing records in the database.
+        """
+
+        def _format_field(field, record):
+            if field.type == FieldType.CHARACTER.value:
+                return record.get(field.name).ljust(field.length + 2)
+            else: 
+                return str(record.get(field.name)).rjust(field.length + 2)
+            
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = self.header.records
+        l = records or [self.get_record(i) for i in range(start, stop)]
+        top_line = BoxType.UP_L.value + BoxType.T_DOWN.value.join(BoxType.HORZ.value * (field.length + 2) for field in self.fields) + BoxType.UP_R.value + "\n"
+        line_divider = BoxType.T_L.value + BoxType.CROSS.value.join(BoxType.HORZ.value * (field.length + 2) for field in self.fields) + BoxType.T_R.value + "\n"       
+        header_line = BoxType.VERT.value + BoxType.VERT.value.join(field.name.center(field.length + 2) for field in self.fields) + BoxType.VERT.value + "\n"
+        bot_line = BoxType.DOWN_L.value + BoxType.T_UP.value.join(BoxType.HORZ.value * (field.length + 2) for field in self.fields) + BoxType.DOWN_R.value + "\n" 
+        record_lines =  ('\n' + line_divider).join(BoxType.VERT.value + BoxType.VERT.value.join(_format_field(field, record) for field in self.fields) + BoxType.VERT.value for record in l)
+        return top_line + header_line + line_divider + record_lines + "\n" + bot_line
 
     def line(self, index, fieldsep="", names_lengths:list=None):
         """
