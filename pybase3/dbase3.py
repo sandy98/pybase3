@@ -20,7 +20,7 @@ Classes:
 import struct, os
 from mmap import mmap as memmap, ACCESS_WRITE
 from enum import Enum
-from typing import List, Dict, Tuple, Callable, AnyStr, ByteString
+from typing import List, Tuple, Generator
 from dataclasses import dataclass, field #, fields, field, is_dataclass
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
@@ -688,39 +688,40 @@ class DbaseFile:
         Returns a CSV string with the field names.
         """
         return ",".join(self.field_names)
+
+    @staticmethod
+    def _format_field(field, record):
+        if field.type == FieldType.CHARACTER.value:
+            return record.get(field.name).ljust(field.length + 2)
+        else: 
+            return str(record.get(field.name)).rjust(field.length + 2)
+            
     
     def table(self, start=0, stop=None, records:list = None):
         """
-        Returns a table string with the records in the database, sqlite3 style.
+        Returns a  generator yielding a string for each line representing a record in the database, 
+        wrapped in sqlite3 style (.mode table) lines.
         """
-        def _format_field(field, record):
-            if field.type == FieldType.CHARACTER.value:
-                return record.get(field.name).ljust(field.length + 2)
-            else: 
-                return str(record.get(field.name)).rjust(field.length + 2)
-            
         if start is None:
             start = 0
         if stop is None:
             stop = self.header.records
         l = records or [self.get_record(i) for i in range(start, stop)]
         line_bracket = "+"
-        line_divider = line_bracket + line_bracket.join("-" * (field.length + 2) for field in self.fields) + line_bracket + "\n"
+        line_divider = line_bracket + line_bracket.join("-" * (field.length + 2) for field in self.fields) + line_bracket
         header_line = "|" + "|".join(field.name.center(field.length + 2) for field in self.fields) + "|" + "\n"
-        record_lines =  ('\n' + line_divider).join("|" + "|".join(_format_field(field, record) for field in self.fields) + "|" for record in l)
-        return line_divider + header_line + line_divider + record_lines + "\n" + line_divider
+        # record_lines =  ('\n' + line_divider).join("|" + "|".join(_format_field(field, record) for field in self.fields) + "|" for record in l)
+        # return line_divider + header_line + line_divider + record_lines + "\n" + line_divider
+        yield line_divider + '\n' + header_line + line_divider
+        for record in l[:]:
+            yield "|" + "|".join(self._format_field(field, record) for field in self.fields) + "|" + "\n" + line_divider
 
-    def pretty_table(self, start=0, stop=None, records:list = None):
+    def pretty_table(self, start=0, stop=None, records:list = None) -> Generator[str, None, None]:
         """
-        Returns a  string representing records in the database.
+        Returns a  generator yielding a string for each line representing a record in the database, 
+        wrapped in cute lines.
         """
 
-        def _format_field(field, record):
-            if field.type == FieldType.CHARACTER.value:
-                return record.get(field.name).ljust(field.length + 2)
-            else: 
-                return str(record.get(field.name)).rjust(field.length + 2)
-            
         if start is None:
             start = 0
         if stop is None:
@@ -734,8 +735,8 @@ class DbaseFile:
         # return top_line + header_line + line_divider + record_lines + "\n" + bot_line
         yield top_line + header_line + line_divider
         for record in l[:-1]:
-            yield BoxType.VERT.value + BoxType.VERT.value.join(_format_field(field, record) for field in self.fields) + BoxType.VERT.value + "\n" + line_divider
-        yield BoxType.VERT.value + BoxType.VERT.value.join(_format_field(field, l[-1]) for field in self.fields) + BoxType.VERT.value + "\n" + bot_line
+            yield BoxType.VERT.value + BoxType.VERT.value.join(self._format_field(field, record) for field in self.fields) + BoxType.VERT.value + "\n" + line_divider
+        yield BoxType.VERT.value + BoxType.VERT.value.join(self._format_field(field, l[-1]) for field in self.fields) + BoxType.VERT.value + "\n" + bot_line
 
     def line(self, index, fieldsep="", names_lengths:list=None):
         """
