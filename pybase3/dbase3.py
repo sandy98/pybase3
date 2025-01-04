@@ -17,7 +17,7 @@ Classes:
 
 # Title: dBase III File Reader and Writer
 
-import struct, os
+import struct, os, pickle
 from mmap import mmap as memmap, ACCESS_WRITE
 from enum import Enum
 from typing import List, Tuple, Generator
@@ -46,6 +46,10 @@ class Record(Dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # self.deleted = False
+
+    @property
+    def datafields(self):
+        return [k for k in self.keys() if k not in ['deleted', 'metadata']]
 
     def __repr__(self):
         return "\n".join(f"{k}: {v}" for k, v in self.items())
@@ -192,7 +196,7 @@ class DbaseFile:
         index(self, fieldname, value, start=0, comp_func=None)
         filter(self, fieldname, value, comp_func=None)
         save_record(self, key, record)
-        write(self)
+        commit(self)
     """
     
     @staticmethod
@@ -253,11 +257,7 @@ class DbaseFile:
         self.filename = filename
         self.filesize = os.path.getsize(filename)
         self.file = open(filename, 'r+b')
-        # self.memfile = memmap(self.file.fileno(), 0, access=ACCESS_WRITE)
-        self.num_fields = 0
-        self.fields = []
-        self.header = None
-        self.datasize = 0
+
         self. _init()
 
     def __del__(self):
@@ -331,7 +331,16 @@ class DbaseFile:
         """
         Initializes the database structure by reading the header and fields.
         """
+        
+        self.num_fields = 0
+        self.fields = []
+        self.header = None
+        self.datasize = 0
+        self.indexes = {}
+        self.indexhits = 0
+        self.tablename = os.path.basename(self.filename).split('.')[0]
         self.header = DbaseHeader()
+        self.file.seek(0)
         self.header.load_bytes(self.file.read(32))
         self.num_fields = (self.header.header_size - 32) // 32
         self.datasize = self.header.record_size * self.header.records
@@ -342,7 +351,32 @@ class DbaseFile:
             if not field.name:  # Stop if the field name is empty
                 break
             self.fields.append(field)
-        # assert(self.header.header_size + self.datasize == self.filesize)
+        assert(self.header.header_size + self.datasize == self.filesize)
+        self.load_mdx()
+
+    def load_mdx(self):
+        """
+        Loads the MDX index file, if it exists.
+        """
+        mdxfile = self.filename.replace('.dbf', '.mdx')
+        if os.path.exists(mdxfile):
+            with open(mdxfile, 'rb') as file:
+                self.indexes = pickle.load(file)
+
+    def save_mdx(self):
+        """
+        Saves the MDX index file.
+        """
+        mdxfile = self.filename.replace('.dbf', '.mdx')
+        with open(mdxfile, 'wb') as file:
+            pickle.dump(self.indexes, file)
+
+    @property
+    def fields_info(self):
+        """
+        Returns a string with information about the fields in the database.
+        """
+        return "\n".join(f"{field.name} ({field.type}): {field.length}" for field in self.fields)
 
     @property
     def field_names(self):
@@ -452,10 +486,7 @@ class DbaseFile:
         self.filename = filename
         os.rename('tmp.dbf', self.filename)
         self.file = open(self.filename, 'r+b')
-        self.num_fields = 0
-        self.fields = []
-        self.header = None
-        self.datasize = 0
+    
         self. _init()
 
     # def add_field(self, name, type, length, decimal=0):
@@ -602,6 +633,7 @@ class DbaseFile:
         """
         Searches for a record with the specified value in the specified field,
         starting from the specified index, for which the specified comparison function returns True.
+        It will try to use the field index if available.
         """
         if funcname not in ("find", "index", ""):
             raise ValueError("Invalid function name") 
@@ -612,6 +644,33 @@ class DbaseFile:
             fieldname = field.name.strip()
         fieldtype = field.type
         if not comp_func:
+            # Try to use indexes first, looking for exact matches.
+            record = None
+            if fieldname in self.indexes:
+                if value in self.indexes[fieldname]:
+                    candidates = self.indexes[fieldname][value]
+                    for index in candidates:
+                        if index >= start:
+                            record = self.get_record(index)
+                            break
+                if record:
+                    # os.sys.stderr.write(f"Found {fieldname} = {value} at index {index}\n")
+                    # os.sys.stderr.flush()
+                    self.indexhits += 1
+                    if funcname not in ("find", "index"):
+                        return index, record
+                    elif funcname == "find":
+                        return record
+                    elif funcname == "index":
+                        return index
+                else:
+                    if funcname not in ("find", "index"):
+                        return -1, None
+                    elif funcname == "find":
+                        return None
+                    elif funcname == "index":
+                        return -1
+
             if fieldtype == FieldType.CHARACTER.value:
                 # comp_func = lambda f, v: f.lower().startswith(v.lower())
                 comp_func = self.istartswith
@@ -624,7 +683,7 @@ class DbaseFile:
             
         for i, record in enumerate(self[start:]):
             if comp_func(record[fieldname], value):
-                if funcname == "":
+                if funcname not in ("find", "index"):
                     return i + start, record
                 elif funcname == "find":
                     return record
@@ -672,9 +731,10 @@ class DbaseFile:
             start = 0
         if stop is None:
             stop = self.header.records
-        l = records or [self.get_record(i) for i in range(start, stop)]
+        l = records or (self.get_record(i) for i in range(start, stop))
         # return recordsep.join(fieldsep.join(str(record[field.name]) for field in self.fields) for record in l)
-        return (fieldsep.join(str(record[field.name]) for field in self.fields) for record in l)
+        # return (fieldsep.join(str(record[field.name]) for field in self.fields) for record in l)
+        return (fieldsep.join(str(record[fieldname]) for fieldname in record.datafields) for record in l)
     
     def csv(self, start=0, stop=None, records:list = None):
         """
@@ -803,6 +863,34 @@ class DbaseFile:
         """
         raise NotImplementedError("SQL commands are not supported as yet.")
 
+    def fields_view(self, start=0, stop=None, step=1, fields:dict=None, records=None):
+        """
+        Returns a generator yielding a record with fields specified in the fields dictionary.
+        """
+        def transform(record:Record, fields:dict):
+            ret = Record()
+            for field in fields:
+                ret[fields[field]] = record.get(field)
+            return ret
+
+        records = records or self[start:stop:step]
+        if not fields:
+            return (record for record in records)
+        return (transform(record, fields) for record in records)
+        
+    def index_on(self, fieldname):
+        if fieldname not in self.field_names:
+            raise ValueError(f"Field {fieldname} not found")
+        self.indexes[fieldname] = {}
+        for i, record in enumerate(self):
+            if not self.indexes[fieldname].get(record[fieldname]):
+                self.indexes[fieldname][record[fieldname]] = [i]
+            else:
+                self.indexes[fieldname][record[fieldname]].append(i)
+        self.save_mdx()
+
+class SQLParser:
+    pass
 
 
 if __name__ == '__main__':
