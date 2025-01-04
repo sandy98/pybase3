@@ -368,7 +368,7 @@ class DbaseFile:
         """
         Loads the MDX index file, if it exists.
         """
-        mdxfile = self.filename.replace('.dbf', '.mdx')
+        mdxfile = self.filename.replace('.dbf', '.pmdx')
         if os.path.exists(mdxfile):
             with open(mdxfile, 'rb') as file:
                 self.indexes = pickle.load(file)
@@ -377,7 +377,7 @@ class DbaseFile:
         """
         Saves the MDX index file.
         """
-        mdxfile = self.filename.replace('.dbf', '.mdx')
+        mdxfile = self.filename.replace('.dbf', '.pmdx')
         with open(mdxfile, 'wb') as file:
             pickle.dump(self.indexes, file)
 
@@ -823,17 +823,17 @@ class DbaseFile:
             yield BoxType.VERT.value + BoxType.VERT.value.join(self._format_field(field, record) for field in self.fields) + BoxType.VERT.value + "\n" + line_divider
         yield BoxType.VERT.value + BoxType.VERT.value.join(self._format_field(field, l[-1]) for field in self.fields) + BoxType.VERT.value + "\n" + bot_line
 
-    def line(self, index, fieldsep="", names_lengths:list=None):
+    def line(self, record, fieldsep="", names_lengths:list=None):
         """
         Returns a string with the record at the specified index, with fields right aligned to max field lengths.
         """
-        record = self.get_record(index)
+        #record = self.get_record(index)
         names_lengths = names_lengths or zip(self.field_names, self.max_field_lengths)
         # names_lengths = names_lengths or zip(self.field_names, self.field_lengths)
         afields = [f"{str(record.get(name)).rjust(length).ljust(length+1)}" for name, length in names_lengths]
         return fieldsep.join(afields)
     
-    def lines(self, start=0, stop=None, fieldsep=""):
+    def lines(self, start=0, stop=None, fieldsep="", records:list=None):
         """
         Returns a generator which resolves to an array of strings, each one with 
         with the records in the specified range, with fields right aligned to max field lengths.
@@ -846,7 +846,8 @@ class DbaseFile:
         # names_lengths = list(zip(self.field_names, self.field_lengths))
         # return recordsep.join([self.line(i, fieldsep, names_lengths=names_lengths)
         #                         for i in range(start, stop)])
-        return (self.line(i, fieldsep, names_lengths=names_lengths) for i in range(start, stop)) 
+        records = records or self[start:stop]
+        return (self.line(r, fieldsep, names_lengths=names_lengths) for r in records) 
        
     def headers_line(self, fieldsep=""):
         """
@@ -908,7 +909,7 @@ class DbaseFile:
         Deletes the MDX index file.
         """
         if entry == "*":
-            mdxfile = self.filename.replace('.dbf', '.mdx')
+            mdxfile = self.filename.replace('.dbf', '.pmdx')
             if os.path.exists(mdxfile):
                 os.remove(mdxfile)
             self.indexes = {}
