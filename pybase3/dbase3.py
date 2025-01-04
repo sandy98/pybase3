@@ -23,9 +23,9 @@ from enum import Enum
 from typing import List, Tuple, Generator
 from dataclasses import dataclass, field #, fields, field, is_dataclass
 from datetime import datetime
+from threading import Thread, Lock
 from multiprocessing.pool import ThreadPool
 # from multiprocessing import Pool
-from threading import Lock
 # from multiprocessing import Lock
 
 try:
@@ -191,12 +191,22 @@ class DbaseFile:
         del_record(self, key, value = True)
         get_record(self, key)
         get_field(self, fieldname)
-        search(self, fieldname, value, start=0, funcname="", comp_func=None)
-        find(self, fieldname, value, start=0, comp_func=None)
-        index(self, fieldname, value, start=0, comp_func=None)
-        filter(self, fieldname, value, comp_func=None)
+        search(self, fieldname, value, start=0, funcname="", compare_function=None)
+        find(self, fieldname, value, start=0, compare_function=None)
+        index(self, fieldname, value, start=0, compare_function=None)
+        filter(self, fieldname, value, compare_function=None)
         save_record(self, key, record)
         commit(self)
+
+        Index usage example:
+        def mk_pediatras():
+            global pediatras
+            t0 = timestamp()
+            pediatras = medicos.filter("Especialida", 27)
+            t1 = timestamp()
+            difftime = int(t1 - t0)
+            print(f"The list of pediatricians with {len(pediatras)} registers was created in {difftime} seconds with {medicos.indexhits} index uses")
+
     """
     
     @staticmethod
@@ -352,9 +362,9 @@ class DbaseFile:
                 break
             self.fields.append(field)
         assert(self.header.header_size + self.datasize == self.filesize)
-        self.load_mdx()
+        self._load_mdx()
 
-    def load_mdx(self):
+    def _load_mdx(self):
         """
         Loads the MDX index file, if it exists.
         """
@@ -363,7 +373,7 @@ class DbaseFile:
             with open(mdxfile, 'rb') as file:
                 self.indexes = pickle.load(file)
 
-    def save_mdx(self):
+    def _save_mdx(self):
         """
         Saves the MDX index file.
         """
@@ -629,12 +639,15 @@ class DbaseFile:
                 return field
         return None
 
-    def search(self, fieldname, value, start=0, funcname="", comp_func=None):
+    def search(self, fieldname, value, start=0, funcname="", compare_function=None):
         """
         Searches for a record with the specified value in the specified field,
         starting from the specified index, for which the specified comparison function returns True.
         It will try to use the field index if available.
         """
+        if fieldname in self.indexes:
+            return self._indexed_search(fieldname, value, start, funcname, compare_function)
+        
         if funcname not in ("find", "index", ""):
             raise ValueError("Invalid function name") 
         field = self.get_field(fieldname)
@@ -643,52 +656,26 @@ class DbaseFile:
         elif fieldname != field.name.strip():
             fieldname = field.name.strip()
         fieldtype = field.type
-        if not comp_func:
-            # Try to use indexes first, looking for exact matches.
-            record = None
-            if fieldname in self.indexes:
-                if value in self.indexes[fieldname]:
-                    candidates = self.indexes[fieldname][value]
-                    for index in candidates:
-                        if index >= start:
-                            record = self.get_record(index)
-                            break
-                if record:
-                    # os.sys.stderr.write(f"Found {fieldname} = {value} at index {index}\n")
-                    # os.sys.stderr.flush()
-                    self.indexhits += 1
-                    if funcname not in ("find", "index"):
-                        return index, record
-                    elif funcname == "find":
-                        return record
-                    elif funcname == "index":
-                        return index
-                else:
-                    if funcname not in ("find", "index"):
-                        return -1, None
-                    elif funcname == "find":
-                        return None
-                    elif funcname == "index":
-                        return -1
-
+        if not compare_function:
             if fieldtype == FieldType.CHARACTER.value:
-                # comp_func = lambda f, v: f.lower().startswith(v.lower())
-                comp_func = self.istartswith
+                # compare_function = lambda f, v: f.lower().startswith(v.lower())
+                compare_function = self.istartswith
             elif fieldtype == FieldType.NUMERIC.value or fieldtype == FieldType.FLOAT.value:
-                comp_func = lambda f, v: f == v 
+                compare_function = lambda f, v: f == v 
             elif fieldtype == FieldType.DATE.value:
-                comp_func = lambda f, v: f == v
+                compare_function = lambda f, v: f == v
             else:
                 raise ValueError(f"Invalid field type {fieldtype} for comparison")
             
         for i, record in enumerate(self[start:]):
-            if comp_func(record[fieldname], value):
+            if compare_function(record[fieldname], value):
                 if funcname not in ("find", "index"):
                     return i + start, record
                 elif funcname == "find":
                     return record
                 elif funcname == "index":
                     return i + start
+
         if funcname == "":
             return -1, None
         elif funcname == "find":
@@ -696,28 +683,66 @@ class DbaseFile:
         elif funcname == "index":
             return -1
 
-    def find(self, fieldname, value, start=0, comp_func=None): 
+    def _indexed_search(self, fieldname, value, start=0, funcname="", compare_function=None):
+        """
+        Searches for a record with the specified value in the specified field,
+        starting from the specified index, for which the specified comparison function returns True,
+        using the field index.
+        """
+        if fieldname not in self.indexes:
+            raise ValueError(f"Index {fieldname} not found.")
+
+        if not compare_function:
+            compare_function = (self.istartswith if self.get_field(fieldname).type == FieldType.CHARACTER.value 
+                         else lambda f, v: f == v)        
+        record = None
+        entry = self.indexes[fieldname]
+        candidates = []
+        for k in entry.keys():
+            if compare_function(k, value):
+                candidates.extend(entry[k])
+        for index in candidates:
+            if index >= start:
+                record = self.get_record(index)
+                break
+        if record:
+            self.indexhits += 1
+            if funcname not in ("find", "index"):
+                return index, record
+            elif funcname == "find":    
+                return record
+            elif funcname == "index":
+                return index    
+        else:
+            if funcname not in ("find", "index"):
+                return -1, None
+            elif funcname == "find":
+                return None
+            elif funcname == "index":
+                return -1
+
+    def find(self, fieldname, value, start=0, compare_function=None): 
         """
         Wrapper for search() with funcname="find".
         Returns the first record (dictionary) found, or None if no record meeting given criteria is found.
         """ 
-        return self.search(fieldname, value, start, "find", comp_func)
+        return self.search(fieldname, value, start, "find", compare_function)
     
-    def index(self, fieldname, value, start=0, comp_func=None):
+    def index(self, fieldname, value, start=0, compare_function=None):
         """
         Wrapper for search() with funcname="index".
         Returns index of the first record found, or -1 if no record meeting given criteria is found.
         """ 
-        return self.search(fieldname, value, start, "index", comp_func)
+        return self.search(fieldname, value, start, "index", compare_function)
 
-    def filter(self, fieldname, value, comp_func=None):
+    def filter(self, fieldname, value, compare_function=None):
         """
         Returns a list of records (dictionaries) that meet the specified criteria.
         """
         ret = []
         index = -1
         while True:
-            index, record = self.search(fieldname, value, index + 1, "", comp_func)  
+            index, record = self.search(fieldname, value, index + 1, "", compare_function)  
             if index < 0:
                 return ret
             else:    
@@ -877,17 +902,39 @@ class DbaseFile:
         if not fields:
             return (record for record in records)
         return (transform(record, fields) for record in records)
-        
-    def index_on(self, fieldname):
+
+    def del_mdx(self,entry:str="*"):
+        """
+        Deletes the MDX index file.
+        """
+        if entry == "*":
+            mdxfile = self.filename.replace('.dbf', '.mdx')
+            if os.path.exists(mdxfile):
+                os.remove(mdxfile)
+            self.indexes = {}
+        else:
+            if entry in self.indexes:
+                del self.indexes[entry]
+                self._save_mdx()
+            else:
+                raise ValueError(f"Index {entry} not found")
+            
+    def make_mdx(self, fieldname):
+        """
+        Generates an MDX index for the specified field.
+          """
         if fieldname not in self.field_names:
             raise ValueError(f"Field {fieldname} not found")
-        self.indexes[fieldname] = {}
-        for i, record in enumerate(self):
-            if not self.indexes[fieldname].get(record[fieldname]):
-                self.indexes[fieldname][record[fieldname]] = [i]
-            else:
-                self.indexes[fieldname][record[fieldname]].append(i)
-        self.save_mdx()
+        def do_index(fieldname):
+            self.indexes[fieldname] = {}
+            for i, record in enumerate(self):
+                if not self.indexes[fieldname].get(record[fieldname]):
+                    self.indexes[fieldname][record[fieldname]] = [i]
+                else:
+                    self.indexes[fieldname][record[fieldname]].append(i)
+            self._save_mdx()
+        indexing_thread = Thread(target=do_index, args=(fieldname,), daemon=True)
+        indexing_thread.start()
 
 class SQLParser:
     pass
