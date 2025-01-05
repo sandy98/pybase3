@@ -48,7 +48,7 @@ test.add_record('Jane Doe', 25)
 print(test)
 print(len(test))
 print(test[:])
-print(test.filter('name', 'ja', comp_func=self.istartswith))
+print(test.filter('name', 'ja', compare_function=self.istartswith))
 
 ```
 
@@ -142,10 +142,10 @@ Class to manipulate DBase III database files.
 
 ### Data searching/filtering methods
 
--  `search(self, fieldname, value, start=0, funcname="", comp_func=None)`: Searches for a record with the specified value in the specified field, starting from the specified index, for which the specified comparison function returns True. Returns a tuple with index:int and record:dict
--  `find(self, fieldname, value, start=0, comp_func=None)`: Wrapper for search() with funcname="find". Returns the first record (dictionary) found, or None if no record meeting given criteria is found.
--  `index(self, fieldname, value, start=0, comp_func=None)`:  Wrapper for search() with funcname="index". Returns index of the first record found, or -1 if no record meeting given criteria is found.
--  `filter(self, fieldname, value, comp_func=None)`: Returns a list of records (dictionaries) that meet the specified criteria.
+-  `search(self, fieldname, value, start=0, funcname="", compare_function=None)`: Searches for a record with the specified value in the specified field, starting from the specified index, for which the specified comparison function returns True. Returns a tuple with index:int and record:dict
+-  `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper for search() with funcname="find". Returns the first record (dictionary) found, or None if no record meeting given criteria is found.
+-  `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper for search() with funcname="index". Returns index of the first record found, or -1 if no record meeting given criteria is found.
+-  `filter(self, fieldname, value, compare_function=None)`: Returns a list of records (dictionaries) that meet the specified criteria.
 - `exec(self, sql_cmd:str)`: Meant for retrieving data in a custom manner. Not operational yet. Invoking it raises a NotImplemented error. 
 
 ### Data listing methods

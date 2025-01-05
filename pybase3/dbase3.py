@@ -949,7 +949,24 @@ class SQLParser:
 
 
 class Connection:
-    pass    
+    def __init__(self, dirname:str):
+        self.dirname = dirname
+        if os.path.exists(dirname):
+            if os.path.isdir(dirname):
+                pass
+            else:
+                raise ValueError(f"{dirname} is not a directory")
+        else:
+            os.makedirs(dirname)
+
+        self.name = os.path.basename(dirname)
+        self.files = []
+        for root, _, files in os.walk(dirname):
+            for file in files:
+                if file.endswith('.dbf'):
+                    self.files.append(os.path.join(root, file))
+        self.tables = [DbaseFile(file) for file in self.files]
+          
 
 
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ test.add_record('Jane Doe', 25)
 print(test)
 print(len(test))
 print(test[:])
-print(test.filter('name', 'ja', comp_func=self.istartswith))
+print(test.filter('name', 'ja', compare_function=self.istartswith))
 
 ```
 
@@ -149,10 +149,10 @@ Clase para manipular archivos de base de datos DBase III.
 
 ### Métodos de búsqueda/filtrado de datos
 
-- `search(self, fieldname, value, start=0, funcname="", comp_func=None)`: Escribe el archivo actual en el disco, omitiendo los registros marcados para su eliminación. Si se proporciona un nombre de archivo distinto del actual, se guarda el archivo de base de datos en el nuevo destino y se conserva el nombre de archivo anterior.
-- `find(self, fieldname, value, start=0, comp_func=None)`: Contenedor para search() con funcname="find". Devuelve el primer registro (diccionario) encontrado, o None si no se encuentra ningún registro que cumpla los criterios dados.
-- `index(self, fieldname, value, start=0, comp_func=None)`:  Contenedor para search() con funcname="index". Devuelve el índice del primer registro encontrado o -1 si no se encuentra ningún registro que cumpla los criterios dados.
-- `filter(self, fieldname, value, comp_func=None)`: Devuelve una lista de registros (diccionarios) que cumplen los criterios especificados.
+- `search(self, fieldname, value, start=0, funcname="", compare_function=None)`: Escribe el archivo actual en el disco, omitiendo los registros marcados para su eliminación. Si se proporciona un nombre de archivo distinto del actual, se guarda el archivo de base de datos en el nuevo destino y se conserva el nombre de archivo anterior.
+- `find(self, fieldname, value, start=0, compare_function=None)`: Contenedor para search() con funcname="find". Devuelve el primer registro (diccionario) encontrado, o None si no se encuentra ningún registro que cumpla los criterios dados.
+- `index(self, fieldname, value, start=0, compare_function=None)`:  Contenedor para search() con funcname="index". Devuelve el índice del primer registro encontrado o -1 si no se encuentra ningún registro que cumpla los criterios dados.
+- `filter(self, fieldname, value, compare_function=None)`: Devuelve una lista de registros (diccionarios) que cumplen los criterios especificados.
 - `exec(self, sql_cmd:str)`: Diseñado para recuperar datos de forma personalizada. Aún no está operativo. Al invocarlo, se genera un error NotImplemented.
 
 ### Métodos de listado de datos

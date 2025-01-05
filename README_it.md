@@ -48,7 +48,7 @@ test.add_record('Jane Doe', 25)
 print(test)
 print(len(test))
 print(test[:])
-print(test.filter('name', 'ja', comp_func=self.istartswith))
+print(test.filter('name', 'ja', compare_function=self.istartswith))
 
 ```
 
@@ -138,10 +138,10 @@ Classe per manipolare i file di database DBase III.
 
 ### Metodi di ricerca/filtraggio dei dati
 
--  `search(self, fieldname, value, start=0, funcname="", comp_func=None)`: Cerca un record con il valore specificato nel campo specificato, a partire dall'indice specificato, per il quale la funzione di confronto specificata Recupera True. Recupera una tupla con indice:int e record:dict
--  `find(self, fieldname, value, start=0, comp_func=None)`: Wrapper per search() con funcname="find". Recupera il primo record (dizionario) trovato oppure None se non viene trovato alcun record che soddisfi i criteri specificati.
--  `index(self, fieldname, value, start=0, comp_func=None)`:  Wrapper per search() con funcname="index". Recupera l'indice del primo record trovato, oppure -1 se non viene trovato alcun record che soddisfi i criteri specificati.
--  `filter(self, fieldname, value, comp_func=None)`:  Recupera un elenco di record (dizionari) che soddisfano i criteri specificati.
+-  `search(self, fieldname, value, start=0, funcname="", compare_function=None)`: Cerca un record con il valore specificato nel campo specificato, a partire dall'indice specificato, per il quale la funzione di confronto specificata Recupera True. Recupera una tupla con indice:int e record:dict
+-  `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper per search() con funcname="find". Recupera il primo record (dizionario) trovato oppure None se non viene trovato alcun record che soddisfi i criteri specificati.
+-  `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper per search() con funcname="index". Recupera l'indice del primo record trovato, oppure -1 se non viene trovato alcun record che soddisfi i criteri specificati.
+-  `filter(self, fieldname, value, compare_function=None)`:  Recupera un elenco di record (dizionari) che soddisfano i criteri specificati.
 - `exec(self, sql_cmd:str)`: Pensato per recuperare dati in modo personalizzato. Non ancora operativo. L'invocazione genera un errore NotImplemented.
 
 ### Metodi di elencazione dei dati
