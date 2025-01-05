@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="img/pybase3t.png" alt="pybase3 logo">
+</p>
+
 # DBase III Python Library
 
 Python library meant to manipulate DBase III database files. It allows reading, writing, adding, and updating records in the database.
