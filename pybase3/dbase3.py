@@ -13,6 +13,9 @@ Classes:
     DbaseField
     Record
     FieldType
+    SQLParser
+    Connection
+
 """
 
 # Title: dBase III File Reader and Writer
@@ -197,16 +200,6 @@ class DbaseFile:
         filter(self, fieldname, value, compare_function=None)
         save_record(self, key, record)
         commit(self)
-
-        Index usage example:
-        def mk_pediatras():
-            global pediatras
-            t0 = timestamp()
-            pediatras = medicos.filter("Especialida", 27)
-            t1 = timestamp()
-            difftime = int(t1 - t0)
-            print(f"The list of pediatricians with {len(pediatras)} registers was created in {difftime} seconds with {medicos.indexhits} index uses")
-
     """
     
     @staticmethod
@@ -498,6 +491,7 @@ class DbaseFile:
         self.file = open(self.filename, 'r+b')
     
         self. _init()
+        self.update_mdx()   
 
     # def add_field(self, name, type, length, decimal=0):
     #     if len(self.records) > 0:
@@ -550,6 +544,7 @@ class DbaseFile:
         self.file.seek(0)
         self.file.write(self.header.to_bytes())        
         self.file.flush()
+        self.update_mdx()
 
     def del_record(self, key, value = True):
         """
@@ -561,6 +556,7 @@ class DbaseFile:
         record['deleted'] = value
         self.save_record(key, record)
         self.file.flush()
+        self.update_mdx()
 
     def update_record(self, key, record):
         """
@@ -576,6 +572,7 @@ class DbaseFile:
         else:
             self.save_record(key, record)
             self.file.flush()
+            self.update_mdx()
 
     def get_record(self, key):
         """
@@ -904,6 +901,27 @@ class DbaseFile:
             return (record for record in records)
         return (transform(record, fields) for record in records)
 
+    def make_mdx(self, fieldname):
+        """
+        Generates a .pmdx index for the specified field.
+          """
+        if fieldname not in self.field_names:
+            raise ValueError(f"Field {fieldname} not found")
+        def do_index(fieldname):
+            self.indexes[fieldname] = {}
+            for i, record in enumerate(self):
+                if not self.indexes[fieldname].get(record[fieldname]):
+                    self.indexes[fieldname][record[fieldname]] = [i]
+                else:
+                    self.indexes[fieldname][record[fieldname]].append(i)
+            self._save_mdx()
+        indexing_thread = Thread(target=do_index, args=(fieldname,), daemon=True)
+        indexing_thread.start()
+
+    def update_mdx(self):
+        for field in self.indexes.keys():
+            self.make_mdx(field)
+
     def del_mdx(self,entry:str="*"):
         """
         Deletes the MDX index file.
@@ -919,26 +937,14 @@ class DbaseFile:
                 self._save_mdx()
             else:
                 raise ValueError(f"Index {entry} not found")
-            
-    def make_mdx(self, fieldname):
-        """
-        Generates an MDX index for the specified field.
-          """
-        if fieldname not in self.field_names:
-            raise ValueError(f"Field {fieldname} not found")
-        def do_index(fieldname):
-            self.indexes[fieldname] = {}
-            for i, record in enumerate(self):
-                if not self.indexes[fieldname].get(record[fieldname]):
-                    self.indexes[fieldname][record[fieldname]] = [i]
-                else:
-                    self.indexes[fieldname][record[fieldname]].append(i)
-            self._save_mdx()
-        indexing_thread = Thread(target=do_index, args=(fieldname,), daemon=True)
-        indexing_thread.start()
+
 
 class SQLParser:
     pass
+
+
+class Connection:
+    pass    
 
 
 if __name__ == '__main__':
