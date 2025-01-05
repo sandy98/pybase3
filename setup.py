@@ -23,5 +23,7 @@ setup(
             'dbftest=pybase3.test:testdb',
             'pybase3=pybase3.__main__:main',
         ],
-    },    
+    },
+    license='MIT',
+    license_files=('LICENSE',),    
 )
