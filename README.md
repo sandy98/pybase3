@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/sandy98/pybase3/blob/main/img/pybase3t.png" alt="pybase3 logo">
+  <img src="https://raw.githubusercontent.com/sandy98/pybase3/main/img/pybase3t.png" alt="pybase3 logo">
 </p>
 
 # DBase III Python Library
