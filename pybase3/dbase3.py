@@ -901,10 +901,15 @@ class DbaseFile:
             return (record for record in records)
         return (transform(record, fields) for record in records)
 
-    def make_mdx(self, fieldname):
+    def make_mdx(self, fieldname:str="*"):
         """
         Generates a .pmdx index for the specified field.
           """
+        
+        if fieldname == "*":
+            for field in self.fields:
+                self.make_mdx(field.name)
+            return
         if fieldname not in self.field_names:
             raise ValueError(f"Field {fieldname} not found")
         def do_index(fieldname):
