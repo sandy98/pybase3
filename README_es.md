@@ -8,6 +8,8 @@ Biblioteca de Python diseñada para manipular archivos de bases de datos DBase I
 
 Aunque este formato de archivo para bases de datos ya no se utiliza en gran medida, el presente trabajo es una miniherramienta útil para recuperar datos antiguos, así como un homenaje a una hermosa parte de la historia de la informática.
 
+A partir de las versiones actualizadas el 4 de enero de 2025, `pybase3` admite la indexación a través de archivos `.pmdx` (Python + .mdx), lo que da como resultado consultas sorprendentemente rápidas. Consulte a continuación para obtener más detalles.
+
 ## Características
 
 - Leer archivos de bases de datos DBase III

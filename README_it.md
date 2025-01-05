@@ -8,6 +8,8 @@ Libreria Python pensata per manipolare i file di database DBase III. Consente di
 
 Sebbene questo formato di file per database non sia più in uso, il presente lavoro è un minitool utile per recuperare dati legacy, oltre che un omaggio a una bella parte della storia dei computer.
 
+A partire dalle versioni aggiornate il 2025-01-04, `pybase3` supporta l'indicizzazione tramite file `.pmdx` (Python + .mdx), che si traduce in query sorprendentemente veloci. Vedi sotto per i dettagli.
+
 ## Caratteristiche
 
 - Leggi file di database DBase III
