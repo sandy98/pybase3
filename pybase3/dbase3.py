@@ -23,7 +23,7 @@ Classes:
 import struct, os, pickle
 from mmap import mmap as memmap, ACCESS_WRITE
 from enum import Enum
-from typing import List, Tuple, Generator
+from typing import List, Tuple, Generator, AnyStr
 from dataclasses import dataclass, field #, fields, field, is_dataclass
 from datetime import datetime
 from threading import Thread, Lock
@@ -102,7 +102,41 @@ class BoxType(Enum):
     
     def __str__(self):
         return self.value
-    
+
+@dataclass
+class Cursor:
+    description: List[AnyStr] = field(default_factory=list)
+    records: Generator = None
+
+    # def __post_init__(self):
+    #     self._init()
+
+    # def _init(self):
+    #     """
+    #     Initializes fields.
+    #     """
+    #     self.description = []
+    #     self.records = None
+
+    def fetchone(self):
+        """
+        Returns the next record from the cursor.
+        """
+        return next(self.records)
+
+    def fetchall(self):
+        """
+        Returns all records from the cursor.
+        """
+        return list(self.records)
+
+    def fetchmany(self, size):
+        """
+        Returns the next 'size' records from the cursor.
+        """
+        return [self.fetchone() for _ in range(size)]
+        
+
 @dataclass
 class DbaseHeader:
     version: int = 3 # 1 byte
@@ -960,14 +994,21 @@ class Connection:
             os.makedirs(dirname)
 
         self.name = os.path.basename(dirname)
-        self.files = []
-        for root, _, files in os.walk(dirname):
+        self._files = []
+        self.tables = []
+        self._load_files()
+
+    def _load_files(self):
+        for root, _, files in os.walk(self.dirname):
             for file in files:
                 if file.endswith('.dbf'):
-                    self.files.append(os.path.join(root, file))
-        self.tables = [DbaseFile(file) for file in self.files]
+                    self._files.append(os.path.join(root, file))
+        self.tables = [DbaseFile(file) for file in self._files]
           
-
+    @property
+    def tablenames(self):
+        return [table.tablename for table in self.tables]
+    
 
 if __name__ == '__main__':
     from test import testdb
