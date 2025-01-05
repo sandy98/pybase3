@@ -17,6 +17,7 @@ Initiating from versions updated on 2025-01-04, `pybase3` supports indexing thro
 - Add new records
 - Update existing records
 - Filter and search records
+- Import from/ export to `.csv` files. (New in v. 1.12.1) See `import_from` and `export_to`
 
 ## Installation
 

@@ -17,6 +17,7 @@ A partir de las versiones actualizadas el 4 de enero de 2025, `pybase3` admite l
 - Agregar nuevos registros
 - Actualizar registros existentes
 - Filtrar y buscar registros
+- Importación desde/exportación a archivos `.csv`. (Novedad en la versión 1.12.1) Consulte `import_from` y `export_to`
 
 ## Instalación
 

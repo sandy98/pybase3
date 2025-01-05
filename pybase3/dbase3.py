@@ -103,39 +103,6 @@ class BoxType(Enum):
     def __str__(self):
         return self.value
 
-@dataclass
-class Cursor:
-    description: List[AnyStr] = field(default_factory=list)
-    records: Generator = None
-
-    # def __post_init__(self):
-    #     self._init()
-
-    # def _init(self):
-    #     """
-    #     Initializes fields.
-    #     """
-    #     self.description = []
-    #     self.records = None
-
-    def fetchone(self):
-        """
-        Returns the next record from the cursor.
-        """
-        return next(self.records)
-
-    def fetchall(self):
-        """
-        Returns all records from the cursor.
-        """
-        return list(self.records)
-
-    def fetchmany(self, size):
-        """
-        Returns the next 'size' records from the cursor.
-        """
-        return [self.fetchone() for _ in range(size)]
-        
 
 @dataclass
 class DbaseHeader:
@@ -235,7 +202,10 @@ class DbaseFile:
         save_record(self, key, record)
         commit(self)
     """
-    
+
+    import_types = ['sqlite3', 'sqlite', 'csv']
+    export_types = ['sqlite3', 'sqlite', 'csv']
+
     @staticmethod
     def istartswith(f: str, v: str) -> bool:
         """
@@ -283,6 +253,80 @@ class DbaseFile:
             file.write(b'\x0D')
         dbf = cls(filename)
         return dbf
+
+    @classmethod
+    def import_from(cls, tablename:str, stype:str='sqlite3', exportname:str=None):
+        """
+        Imports a database from a source of the specified type.
+        """
+        if '.' in tablename:
+            srctype = tablename.split('.')[-1]
+        else:
+            srctype = stype
+        if srctype not in cls.import_types:
+            raise ValueError(f"Invalid source type {srctype}")
+        filename = tablename
+        if srctype.startswith('sqlite'):
+            raise NotImplementedError("SQLite import not implemented yet")
+        elif srctype == 'csv':
+            # raise NotImplementedError("CSV import not implemented yet")
+            if not os.path.exists(filename):
+                raise FileNotFoundError(f"File {filename} not found")
+            tablename = os.path.basename(filename).split('.')[0]
+            with open(filename, 'r') as file:
+                header = file.readline().strip()
+                fields = header.split(',')
+                firstline = file.readline().strip()
+                if not firstline:
+                    raise ValueError("No records found")
+                else:
+                    values = firstline.split(',')
+                    if len(values) != len(fields):
+                        raise ValueError("Inconsistent number of fields and values")
+                    dbFields: List[Tuple[str,str, int, int]] = []
+                    for header, value in zip(fields, values):
+                        if value.isdigit():
+                            ftype = 'N'
+                        elif value.replace('.', '', 1).isdigit():
+                            ftype = 'F'
+                        elif value in ['T', 'F']:
+                            ftype = 'L'
+                        else:
+                            ftype = 'C'
+                        if ftype == 'N':
+                            dbFields.append((header, ftype, 8, 0))
+                        elif ftype == 'F':
+                            dbFields.append((header, ftype, 8, 2))
+                        elif ftype == 'L': 
+                            dbFields.append((header, ftype, 1, 0))
+                        else:
+                            dbFields.append((header, ftype, len(value) * 3, 0))
+                dbfname = exportname or filename.replace('csv', 'dbf')
+                dbf = cls.create(dbfname, dbFields)
+                dbf.add_record(*values)
+                for line in file.readlines():
+                    values = line.strip().split(',')
+                    dbf.add_record(*values)
+                return dbf
+            return False
+        
+    def export_to(self, desttype:str='sqlite3', filename:str=None):
+        """
+        Exports the database to a destination of the specified type.
+        """
+        if desttype not in self.export_types:
+            raise ValueError(f"Invalid destination type {desttype}")
+        if desttype == 'sqlite3':
+            raise NotImplementedError("SQLite export not implemented yet")
+        elif desttype == 'csv':
+            # raise NotImplementedError("CSV export not implemented yet")
+            header_line = self.csv_headers_line
+            fname = filename or self.filename.replace('dbf', 'csv')
+            with open(fname, 'w') as file:
+                file.write(header_line + "\n")
+                for line in self.csv():
+                    file.write(line + "\n")
+                return True
 
     def __init__(self, filename):
         """
@@ -803,7 +847,8 @@ class DbaseFile:
         """
         Returns a CSV string with the field names.
         """
-        return ",".join(self.field_names)
+        return ",".join(field_name for field_name in self.field_names)
+    
 
     @staticmethod
     def _format_field(field, record):
@@ -980,6 +1025,39 @@ class DbaseFile:
 
 class SQLParser:
     pass
+
+@dataclass
+class Cursor:
+    description: List[AnyStr] = field(default_factory=list)
+    records: Generator = None
+
+    # def __post_init__(self):
+    #     self._init()
+
+    # def _init(self):
+    #     """
+    #     Initializes fields.
+    #     """
+    #     self.description = []
+    #     self.records = None
+
+    def fetchone(self):
+        """
+        Returns the next record from the cursor.
+        """
+        return next(self.records)
+
+    def fetchall(self):
+        """
+        Returns all records from the cursor.
+        """
+        return list(self.records)
+
+    def fetchmany(self, size):
+        """
+        Returns the next 'size' records from the cursor.
+        """
+        return [self.fetchone() for _ in range(size)]
 
 
 class Connection:
