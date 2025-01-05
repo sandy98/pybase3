@@ -146,9 +146,13 @@ Classe per manipolare i file di database DBase III.
 
 ### Metodi di elencazione dei dati
 
--  `list(self, start=0, stop=None, fieldsep="|", recordsep='\n', records:list=None)`:  Recupera un elenco di record dal database, iniziando da 'start', terminando a 'stop' o EOF, con campi separati da 'fieldsep' e record separati da '\n'. Se 'records' non è None, l'elenco fornito viene utilizzato invece del recupero dei valori dal database.
--  `csv(self, start=0, stop=None, records:list = None)`: Wrapper per 'list', utilizzando ',' come separatore campi.
--  `table(self, start=0, stop=None, records:list = None)`: Recupera i record selezionati utilizzando il formato ad hoc, lo stesso fornito da sqlite3 CLI in modalità .table.
+- `list(self, start=0, stop=None, fieldsep="|", recordsep='\n', records:list=None)`: restituisce un elenco di record dal database, iniziando da 'start', terminando da 'stop' o EOF, con campi separati da 'fieldsep' e record separati da '\n'. Se 'records' non è None, viene utilizzato l'elenco fornito invece di recuperare i valori dal database.
+- `csv(self, start=0, stop=None, records:list = None)`: wrapper per 'list', utilizzando ',' come fieldsep.
+- `table(self, start=0, stop=None, records:list = None)`: recupera i record selezionati utilizzando il formato ad hoc, lo stesso fornito da sqlite3 CLI in modalità .table.
+- `pretty_table(self, start=0, stop=None, records:list = None)`: Recupera i record selezionati utilizzando un formato ad hoc, come `table` ma con linee più graziose.
+- `lines(self, start=0, stop=None, records:list = None)`: Recupera i record selezionati con i valori dei campi allineati alle loro larghezze.
+
+Vale la pena notare che tutti questi ultimi cinque metodi restituiscono generatori anziché elenchi, il che li rende molto più leggeri in caso di recordset ingombranti.
 
 ### Metodi statici (funzioni ausiliarie per la ricerca/filtraggio)
 

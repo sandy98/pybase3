@@ -158,8 +158,12 @@ Clase para manipular archivos de base de datos DBase III.
 ### Métodos de listado de datos
 
 - `list(self, start=0, stop=None, fieldsep="|", recordsep='\n', records:list=None)`: Devuelve una lista de registros de la base de datos, comenzando en 'start', terminando en 'stop' o EOF, con campos separados por 'fieldsep' y registros separados por '\n'. Si 'records' no es None, se utiliza la lista proporcionada en lugar de recuperar valores de la base de datos.
-- `csv(self, start=0, stop=None, records:list = None)`: Contenedor para 'lista', que utiliza "," como separador de campos.
-- `table(self, start=0, stop=None, records:list = None)`: Recupera registros seleccionados utilizando el formato ad-hoc, el mismo que proporciona la CLI de sqlite3 en modo .table.
+- `csv(self, start=0, stop=None, records:list = None)`: Envoltorio para 'list', usando ',' como fieldsep.
+- `table(self, start=0, stop=None, records:list = None)`: Recupera registros seleccionados usando un formato ad-hoc, el mismo que proporciona la CLI de sqlite3 en modo .table.
+- `pretty_table(self, start=0, stop=None, records:list = None)`: recupera los registros seleccionados utilizando un formato ad-hoc, como `table` pero con líneas más bonitas.
+- `lines(self, start=0, stop=None, records:list = None)`: recupera los registros seleccionados con los valores de campo alineados con sus anchos.
+
+Vale la pena señalar que estos últimos cinco métodos devuelven generadores en lugar de listas, lo que los hace mucho más livianos en el caso de conjuntos de registros voluminosos.
 
 ### Métodos estáticos (Funciones auxiliares para búsqueda/filtrado de datos)
 
