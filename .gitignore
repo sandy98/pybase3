@@ -3,6 +3,7 @@ db/
 __pycache__/
 build/
 dist/
+img/bak/
 pybase3.egg-info/
 docs/
 third-party/

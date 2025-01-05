@@ -13,6 +13,27 @@ try:
 except ImportError:
     from pybase3.dbase3 import DbaseFile, FieldType
 
+def mk_pediatras():
+    from time import time as timestamp
+    medicos = None
+    pediatras = None
+    try:
+        medicos = DbaseFile('db/medicos.dbf')
+    except FileNotFoundError:
+        print("Error: Can't open 'medicos.dbf'.")
+        return
+    medicos.indexhits = 0
+    t0 = timestamp()
+    pediatras = medicos.filter("Especialida", 27)
+    t1 = timestamp()
+    difftime = round(t1 - t0, 3)
+    print(f"The list of pediatricians with {len(pediatras)} registers was created in {difftime} seconds with {medicos.indexhits} index uses")
+    print(f"The first pediatrician is: {pediatras[0].NOMBRE}")
+    print(f"The pediatrician in the middle is: {pediatras[len(pediatras)//2].NOMBRE}")
+    print(f"The last pediatrician is: {pediatras[-1].NOMBRE}")
+
+    return medicos, pediatras
+
 def create_test_db():
     test = DbaseFile.create('db/test.dbf',
                         [('name', FieldType.CHARACTER.value, 50, 0),
