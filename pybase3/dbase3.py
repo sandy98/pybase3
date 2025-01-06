@@ -32,9 +32,9 @@ from multiprocessing.pool import ThreadPool
 # from multiprocessing import Lock
 
 try:
-    from pybase3.utils import Dict
+    from pybase3.utils import SmartDict
 except ImportError:
-    from utils import Dict
+    from utils import SmartDict
 
 
 
@@ -45,7 +45,7 @@ getYear = lambda: datetime.now().year - 1900
 getMonth = lambda: datetime.now().month
 getDay = lambda: datetime.now().day
 
-class Record(Dict):
+class Record(SmartDict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # self.deleted = False
@@ -56,7 +56,7 @@ class Record(Dict):
 
     @property
     def to_datafields(self):
-        return Dict({k: self[k] for k in self.datafields})
+        return SmartDict({k: self[k] for k in self.datafields})
     
     def __repr__(self):
         return "\n".join(f"{k}: {v}" for k, v in self.items())
@@ -367,7 +367,7 @@ class DbaseFile:
             conn = sqlite3.Connection(filename)
             conn.execute(self.schema)
             for record in self:
-                rec = d = Dict([(k, record[k]) for k in record.datafields])
+                rec = d = SmartDict([(k, record[k]) for k in record.datafields])
                 fieldslist = ','.join(rec.keys())
                 placeholders = ','.join('?' * len(rec))
                 values = tuple(rec.values())
@@ -675,7 +675,7 @@ class DbaseFile:
         """
         Adds a new record to the database.
 
-        :param record_data: Dictionary with the new record's data.
+        :param record_data: SmartDictionary with the new record's data.
         """
         if len(data) != len(self.fields):
             raise ValueError("Wrong number of fields")
@@ -721,7 +721,7 @@ class DbaseFile:
         Updates an existing record in the database.
 
         :param index: Index of the record to update.
-        :param record_data: Dictionary with the updated data.
+        :param record_data: SmartDictionary with the updated data.
         :raises IndexError: If the record index is out of range.
         """
         self._test_key(key)
@@ -748,7 +748,7 @@ class DbaseFile:
             return None
         to_be_deleted = (rec_bytes[0] == 0x2A)
         rec_bytes = rec_bytes[1:]
-        record = Record(deleted=to_be_deleted, metadata=Dict(offset=offset, index=key))
+        record = Record(deleted=to_be_deleted, metadata=SmartDict(offset=offset, index=key))
         for field in self.fields:
             fieldtype = field.type
             fieldname = field.name.strip("\0x00").strip()
@@ -1212,7 +1212,7 @@ class SQLParser:
         self._sql = sqlstr
         self._type:SQLType = None
 
-        self.fields:Dict = None
+        self.fields:List[SmartDict] = None
         self.tables:List[AnyStr] = None
         self.compare_func_src:str = None
         self.compare_func:Callable = None
@@ -1265,7 +1265,7 @@ class SQLParser:
         # elif sqlcmd == 'DROP INDEX':
         #     self._type = SQLType.DROP_INDEX
         else:
-            raise ValueError(f"Invalid SQL command: {sql}")
+            raise ValueError(f"Invalid SQL command: {sqlcmd}")
 
         if self.type == 'SELECT':
             m = self.select_re.match(self._sql.strip())
@@ -1295,14 +1295,27 @@ class SQLParser:
                     self._wheresrc = self._whereend = None
             else:
                 self._fromsrc = self._fromend = self._wheresrc = self._whereend = None
-            
+
+            if self._selectsrc:
+                self.fields = self._selectsrc.split(',')
+                self.fields = [field.strip() for field in self.fields]
+                for i, f in enumerate(self.fields):
+                    if f.strip() == '*':
+                        self.fields = None
+                        break
+                    alias = re.split(r'\s+AS\s+', f, re.IGNORECASE)
+                    if len(alias) == 2:
+                        self.fields[i] = SmartDict({alias[0].strip(): alias[1].strip()})
+                    else:
+                        self.fields[i] = SmartDict({alias[0].strip(): alias[0].strip()})
+
             if self._wheresrc:
                 lhs, operator, rhs = self.parse_where_clause(self._wheresrc)
-                self.compare_func_src, self.compare_func = self.compile_where_clause(lhs, operator, rhs)
+                self.compare_func, self.compare_func_src = self.compile_where_clause(lhs, operator, rhs)
 
     @property
     def parts(self):
-        return Dict(selectsrc=self._selectsrc, fromsrc=self._fromsrc, 
+        return SmartDict(selectsrc=self._selectsrc, fromsrc=self._fromsrc, 
                     wheresrc=self._wheresrc)
     
     @property

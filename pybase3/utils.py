@@ -2,14 +2,14 @@
 
 ######################################################################################
 
-class Dict(dict):
-     """Dict class with attributes equating dict keys"""
+class SmartDict(dict):
+     """SmartDict class with attributes equating dict keys"""
 
      def __init__(self, d: dict = None, **kw):
          if d:
-             super(Dict, self).__init__(d, **kw)
+             super(SmartDict, self).__init__(d, **kw)
          else:
-             super(Dict, self).__init__({}, **kw)
+             super(SmartDict, self).__init__({}, **kw)
      
      def __hasattr__(self, attr):
          return hasattr(super(), attr) or not not self.get(attr)
@@ -30,7 +30,7 @@ class Dict(dict):
 
      def copy(self):
          d = super().copy()
-         return Dict(d)
+         return SmartDict(d)
 
      @property
      def parent(self):
