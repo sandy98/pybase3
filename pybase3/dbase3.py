@@ -20,10 +20,10 @@ Classes:
 
 # Title: dBase III File Reader and Writer
 
-import struct, os, pickle, sqlite3
+import struct, os, pickle, sqlite3, re
 from mmap import mmap as memmap, ACCESS_WRITE
 from enum import Enum
-from typing import List, Tuple, Generator, AnyStr
+from typing import List, Tuple, Generator, AnyStr, Callable
 from dataclasses import dataclass, field #, fields, field, is_dataclass
 from datetime import datetime
 from threading import Thread, Lock
@@ -1102,10 +1102,217 @@ class DbaseFile:
             else:
                 raise ValueError(f"Index {entry} not found")
 
+class SQLType(Enum):
+    SELECT = 1
+    INSERT = 2
+    UPDATE = 3
+    DELETE = 4
+    CREATE = 5
+    DROP = 6
+    ALTER = 7
+    COMMIT = 8
+    ROLLBACK = 9
+    BEGIN = 10
+    END = 11
+    SAVEPOINT = 12
+    RELEASE = 13
+    ROLLBACK_TO = 14
+    CREATE_INDEX = 15
+    DROP_INDEX = 16
+
+    def __repr__(self):
+        return self.name
+    
+    def __str__(self):
+        return self.name
+
 
 class SQLParser:
-    pass
 
+    select_re = re.compile(r"^SELECT\s+(?P<selectsrc>.+?)\s?(?P<selend>FROM|;$)", 
+                           re.IGNORECASE)
+    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>where|;$)",
+                            re.IGNORECASE)
+    where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>;$)",
+                            re.IGNORECASE)
+    
+    @staticmethod
+    def parse_where_clause(wheresrc):
+        # Regular expression to extract the components of the WHERE clause
+        match = re.match(r"(\w+)\s*(=|<|>|<=|>=|!=|LIKE)\s*'?([^']*)'?", wheresrc, re.IGNORECASE)
+        if not match:
+            raise ValueError("Invalid WHERE clause format")
+        lhs, operator, rhs = match.groups()
+        if lhs.replace('.', '').isdigit():
+            lhs = float(lhs)
+        if rhs.replace('.', '').isdigit():
+            rhs = float(rhs)
+        return lhs, operator, rhs
+
+    @staticmethod
+    def compile_where_clause(lhs, operator, rhs):
+        # Map SQL operators to Python equivalents
+        operator_map = {
+            "=": "==",
+            "!=": "!=",
+            "<": "<",
+            ">": ">",
+            "<=": "<=",
+            ">=": ">="
+        }
+
+        # Convert SQL condition to Python code
+        if operator in operator_map:
+            if isinstance(rhs, str):
+                python_condition = f"record['{lhs}'] {operator_map[operator]} '{rhs}'"
+            else:
+                python_condition = f"record['{lhs}'] {operator_map[operator]} {rhs}"
+        elif operator.upper() == "LIKE":
+            # For LIKE, use Python's `in` for simplicity
+            python_condition = f"'{rhs}' in record['{lhs}']"
+        else:
+            raise ValueError(f"Unsupported operator: {operator}")
+
+        # Create a lambda function for the condition
+        lambdasrc = f"lambda record: {python_condition}"
+        return eval(lambdasrc), lambdasrc
+
+    @staticmethod
+    def words(sql:str):
+        """
+        Returns a list of words in the SQL command.
+        """
+        is_start_string = lambda str: str[0] in ('"', "'")
+        is_end_string = lambda str: str[-1] in ('"', "'")
+        is_string = lambda str: is_start_string(str) and is_end_string(str)
+
+        primary = re.split(r'\s+', sql)
+        startstr = None
+        final = []
+        for word in primary:
+            if not startstr:
+                if is_string(word):
+                    final.append(word)
+                elif is_start_string(word) and not is_end_string(word):
+                    startstr = word
+                    continue
+                else:
+                    final.append(word)
+            else:
+                if is_string(word):
+                    startstr += " " + word.strip('\'"')
+                if is_end_string(word) and not is_start_string(word):
+                    final.append(startstr + " " + word)
+                    startstr = None
+                else:
+                    startstr += " " + word
+        return final
+    
+    def __init__(self, sqlstr:str):
+        self._sql = sqlstr
+        self._type:SQLType = None
+
+        self.fields:Dict = None
+        self.tables:List[AnyStr] = None
+        self.compare_func_src:str = None
+        self.compare_func:Callable = None
+        
+        self._selectsrc = None
+        self._selend = None
+        self._fromsrc = None
+        self._fromend = None
+        self._wheresrc = None
+        self._whereend = None
+
+        self.parse()
+    
+    def parse(self):
+        sqlcmd = self.words(self._sql.strip())[0].upper()
+        if sqlcmd == 'SELECT':
+            self._type = SQLType.SELECT
+        elif sqlcmd == 'INSERT':
+            self._type = SQLType.INSERT
+            raise NotImplementedError("INSERT not implemented yet")
+        elif sqlcmd == 'UPDATE':
+            self._type = SQLType.UPDATE
+            raise NotImplementedError("UPDATE not implemented yet")
+        elif sqlcmd == 'DELETE':
+            self._type = SQLType.DELETE
+            raise NotImplementedError("DELETE not implemented yet")
+
+        # elif sqlcmd == 'CREATE':
+        #     self._type = SQLType.CREATE
+        # elif sqlcmd == 'DROP':
+        #     self._type = SQLType.DROP
+        # elif sqlcmd == 'ALTER':
+        #     self._type = SQLType.ALTER
+        # elif sqlcmd == 'COMMIT':
+        #     self._type = SQLType.COMMIT
+        # elif sqlcmd == 'ROLLBACK':
+        #     self._type = SQLType.ROLLBACK
+        # elif sqlcmd == 'BEGIN':
+        #     self._type = SQLType.BEGIN
+        # elif sqlcmd == 'END':
+        #     self._type = SQLType.END
+        # elif sqlcmd == 'SAVEPOINT':
+        #     self._type = SQLType.SAVEPOINT
+        # elif sqlcmd == 'RELEASE':
+        #     self._type = SQLType.RELEASE
+        # elif sqlcmd == 'ROLLBACK TO':
+        #     self._type = SQLType.ROLLBACK_TO
+        # elif sqlcmd == 'CREATE INDEX':
+        #     self._type = SQLType.CREATE_INDEX
+        # elif sqlcmd == 'DROP INDEX':
+        #     self._type = SQLType.DROP_INDEX
+        else:
+            raise ValueError(f"Invalid SQL command: {sql}")
+
+        if self.type == 'SELECT':
+            m = self.select_re.match(self._sql.strip())
+            if m:
+                d = m.groupdict()
+                self._selectsrc = d.get('selectsrc').strip()
+                self._selend = d.get('selend').strip()
+            else:
+                raise ValueError(f"Invalid SELECT command: '{self._sql}'")
+            if self._selend != ';':
+                m = self.from_re.match(self._sql.strip())
+                if m:
+                    d = m.groupdict()
+                    self._fromsrc = d.get('fromsrc').strip()
+                    self._fromend = d.get('fromend').strip()
+                else:
+                    raise ValueError(f"Invalid FROM command: '{self._sql}'")
+                if self._fromend != ';':
+                    m = self.where_re.match(self._sql.strip())
+                    if m:
+                        d = m.groupdict()
+                        self._wheresrc = d.get('wheresrc').strip()
+                        self._whereend = d.get('whereend').strip()
+                    else:
+                        raise ValueError(f"Invalid WHERE command: '{self._sql}'")   
+                else:
+                    self._wheresrc = self._whereend = None
+            else:
+                self._fromsrc = self._fromend = self._wheresrc = self._whereend = None
+            
+            if self._wheresrc:
+                lhs, operator, rhs = self.parse_where_clause(self._wheresrc)
+                self.compare_func_src, self.compare_func = self.compile_where_clause(lhs, operator, rhs)
+
+    @property
+    def parts(self):
+        return Dict(selectsrc=self._selectsrc, fromsrc=self._fromsrc, 
+                    wheresrc=self._wheresrc)
+    
+    @property
+    def type(self) -> SQLType:
+        return self._type.name
+    
+    @property
+    def sql(self) -> str:
+        return self._sql
+    
 @dataclass
 class Cursor:
     description: List[AnyStr] = field(default_factory=list)
@@ -1169,6 +1376,9 @@ class Connection:
     
 
 if __name__ == '__main__':
+    sql_parser = SQLParser("SELECT id, name FROM users WHERE name = 'John Doe';")
+    print(sql_parser.parts)
+    os.sys.exit()    
     from test import testdb
     testdb()
     print("Done!")
