@@ -18,6 +18,7 @@ A partire dalle versioni aggiornate il 2025-01-04, `pybase3` supporta l'indicizz
 - Aggiorna record esistenti
 - Filtra e cerca record
 - Importa da/esporta in file `.csv`. (Novità nella v. 1.12.1) Vedere `import_from` e `export_to`
+- Importa da/esporta in database `sqlite`. (Novità nella v. 1.13.1) Vedere `import_from` e `export_to`
 
 ## Installazione
 

@@ -20,7 +20,7 @@ Classes:
 
 # Title: dBase III File Reader and Writer
 
-import struct, os, pickle
+import struct, os, pickle, sqlite3
 from mmap import mmap as memmap, ACCESS_WRITE
 from enum import Enum
 from typing import List, Tuple, Generator, AnyStr
@@ -255,24 +255,64 @@ class DbaseFile:
         return dbf
 
     @classmethod
-    def import_from(cls, tablename:str, stype:str='sqlite3', exportname:str=None):
+    def import_from(cls, filename:str, tablename:str=None, stype:str='sqlite3', exportname:str=None):
         """
         Imports a database from a source of the specified type.
         """
-        if '.' in tablename:
-            srctype = tablename.split('.')[-1]
+        if '.' in filename:
+            srctype = filename.split('.')[-1]
         else:
             srctype = stype
         if srctype not in cls.import_types:
             raise ValueError(f"Invalid source type {srctype}")
-        filename = tablename
+        if not tablename:
+            tablename = os.path.basename(filename).split('.')[0]
+
         if srctype.startswith('sqlite'):
-            raise NotImplementedError("SQLite import not implemented yet")
+            # raise NotImplementedError("SQLite import not implemented yet")
+            if not os.path.exists(filename):
+                raise FileNotFoundError(f"File {filename} not found")
+            conn = sqlite3.Connection(filename)
+            curr = conn.execute(f"SELECT * FROM sqlite_master WHERE type='table' AND name='{tablename}';")
+            if not curr.fetchone():
+                raise ValueError(f"Table {tablename} not found")
+            curr = conn.execute(f"PRAGMA table_info({tablename});")
+            fields = []
+            for row in curr.fetchall():
+                fields.append([row[1], row[2], 0, 0])
+            for field in fields:
+                if field[1].startswith('TEXT'):
+                    field[1] = 'C'
+                    field[2] = 50
+                    field[3] = 0
+                elif field[1].startswith('INT'):
+                    field[1] = 'N'
+                    field[2] = 8
+                    field[3] = 0
+                elif field[1].startswith('REAL'):
+                    field[1] = 'F'
+                    field[2] = 8
+                    field[3] = 2
+                elif field[1].startswith('BOOL'):
+                    field[1] = 'L'
+                    field[2] = 1
+                    field[3] = 0
+                else:
+                    field[1] = 'C'
+                    field[2] = 50
+                    field[3] = 0
+
+            dbfname = exportname or filename.replace('sqlite', 'dbf')
+            dbf = cls.create(dbfname, fields)
+            curr = conn.execute(f"SELECT * FROM {tablename};")
+            for row in curr.fetchall():
+                dbf.add_record(*row)
+            return dbf
+
         elif srctype == 'csv':
             # raise NotImplementedError("CSV import not implemented yet")
             if not os.path.exists(filename):
                 raise FileNotFoundError(f"File {filename} not found")
-            tablename = os.path.basename(filename).split('.')[0]
             with open(filename, 'r') as file:
                 header = file.readline().strip()
                 fields = header.split(',')
@@ -316,8 +356,21 @@ class DbaseFile:
         """
         if desttype not in self.export_types:
             raise ValueError(f"Invalid destination type {desttype}")
-        if desttype == 'sqlite3':
-            raise NotImplementedError("SQLite export not implemented yet")
+        if desttype.startswith('sqlite'):
+            # raise NotImplementedError("SQLite export not implemented yet")
+            if not filename:
+                filename = self.filename.replace('dbf', 'sqlite')
+            conn = sqlite3.Connection(filename)
+            conn.execute(self.schema)
+            for record in self:
+                rec = d = Dict([(k, record[k]) for k in record.datafields])
+                fieldslist = ','.join(rec.keys())
+                placeholders = ','.join('?' * len(rec))
+                values = tuple(rec.values())
+                sql = f"INSERT INTO {self.tablename} ({fieldslist}) VALUES ({placeholders});"                
+                conn.execute(sql, values)
+            conn.commit()
+            return True
         elif desttype == 'csv':
             # raise NotImplementedError("CSV export not implemented yet")
             header_line = self.csv_headers_line
@@ -451,6 +504,29 @@ class DbaseFile:
         mdxfile = self.filename.replace('.dbf', '.pmdx')
         with open(mdxfile, 'wb') as file:
             pickle.dump(self.indexes, file)
+
+    @property
+    def schema(self):
+        prefix = f"""
+        CREATE TABLE IF NOT EXISTS {self.tablename} (
+"""
+        suffix = f"""
+        );
+        """
+        fields = []
+        for field in self.fields:
+            if field.type == 'C':
+                fields.append(f"    {field.name} TEXT")
+            elif field.type == 'N':
+                fields.append(f"    {field.name} INTEGER")
+            elif field.type == 'F':
+                fields.append(f"    {field.name} REAL")
+            elif field.type == 'D':
+                fields.append(f"    {field.name} DATE")
+            elif field.type == 'L':
+                fields.append(f"    {field.name} INTEGER")
+
+        return prefix + ",\n".join(fields) + suffix
 
     @property
     def fields_info(self):
