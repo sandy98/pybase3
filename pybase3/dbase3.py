@@ -54,6 +54,10 @@ class Record(Dict):
     def datafields(self):
         return [k for k in self.keys() if k not in ['deleted', 'metadata']]
 
+    @property
+    def to_datafields(self):
+        return Dict({k: self[k] for k in self.datafields})
+    
     def __repr__(self):
         return "\n".join(f"{k}: {v}" for k, v in self.items())
 
