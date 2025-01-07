@@ -9,9 +9,43 @@
 
 import os, sys, subprocess
 try:
-    from dbase3 import DbaseFile, FieldType
+    from dbase3 import DbaseFile, FieldType, SQLParser
 except ImportError:
-    from pybase3.dbase3 import DbaseFile, FieldType
+    from pybase3.dbase3 import DbaseFile, FieldType, SQLParser
+
+def test_sql():
+    subprocess.run(['clear'])
+    sqlstr = "SELECT name as nombre, age FROM kids WHERE age > 18;"
+    sql_parser = SQLParser(sqlstr)
+    print("SQL parser parts:", sql_parser.parts)
+    kids = DbaseFile('db/kids.dbf')
+    print("\nKids database\n-------------------")
+    print(kids.csv_headers_line)
+    for csv in kids.csv():
+        print(csv)
+    print(f"\nSQL command: {sqlstr}\n-------------------")
+    oldies = kids.filter(sql_parser.field_param, sql_parser.value_param, 
+                         compare_function=sql_parser.compare_func)
+    noldies = kids.fields_view(fields=sql_parser.fields, records=oldies)
+    print("\nResult of SQL query\n-------------------")
+    for record in noldies:
+        for k, v in record.items():
+            print(f"{k}: {v}", end=' - ' if k != 'age' else '\n')
+    print("\n")
+    sqlstr = "SELECT name as nombre, age FROM kids WHERE name like 'B';"
+    sql_parser = SQLParser(sqlstr)
+    print("SQL parser parts:", sql_parser.parts)
+    print(f"\nSQL command: {sqlstr}\n-------------------")
+    oldies = kids.filter(sql_parser.field_param, sql_parser.value_param, 
+                         compare_function=sql_parser.compare_func)
+    noldies = kids.fields_view(fields=sql_parser.fields, records=oldies)
+    print("\nResult of SQL query\n-------------------")
+    for record in noldies:
+        for k, v in record.items():
+            print(f"{k}: {v}", end=' - ' if k != 'age' else '\n')
+    print("\n")
+    os.sys.exit()    
+
 
 def mk_pediatras():
     from time import time as timestamp

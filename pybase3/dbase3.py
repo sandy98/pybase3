@@ -1164,17 +1164,22 @@ class SQLParser:
         # Convert SQL condition to Python code
         if operator in operator_map:
             if isinstance(rhs, str):
-                python_condition = f"record['{lhs}'] {operator_map[operator]} '{rhs}'"
+                # python_condition = f"record['{lhs}'] {operator_map[operator]} '{rhs}'"
+                python_condition = f"f {operator_map[operator]} '{rhs}'"
             else:
-                python_condition = f"record['{lhs}'] {operator_map[operator]} {rhs}"
+                # python_condition = f"record['{lhs}'] {operator_map[operator]} {rhs}"
+                python_condition = f"f {operator_map[operator]} {rhs}"
         elif operator.upper() == "LIKE":
             # For LIKE, use Python's `in` for simplicity
-            python_condition = f"'{rhs}' in record['{lhs}']"
+            # python_condition = f"'{rhs}' in record['{lhs}']"
+            # python_condition = f"'{rhs}' in {lhs}"
+            python_condition = f"'{rhs}' in f"
         else:
             raise ValueError(f"Unsupported operator: {operator}")
 
         # Create a lambda function for the condition
-        lambdasrc = f"lambda record: {python_condition}"
+        # lambdasrc = f"lambda record: {python_condition}"
+        lambdasrc = f"lambda f, v: {python_condition}"
         return eval(lambdasrc), lambdasrc
 
     @staticmethod
@@ -1212,10 +1217,13 @@ class SQLParser:
         self._sql = sqlstr
         self._type:SQLType = None
 
-        self.fields:List[SmartDict] = None
+        self.fields:SmartDict = None
         self.tables:List[AnyStr] = None
         self.compare_func_src:str = None
         self.compare_func:Callable = None
+        self.field_param = None
+        self.value_param = None
+        self.operator = None
         
         self._selectsrc = None
         self._selend = None
@@ -1297,21 +1305,31 @@ class SQLParser:
                 self._fromsrc = self._fromend = self._wheresrc = self._whereend = None
 
             if self._selectsrc:
-                self.fields = self._selectsrc.split(',')
-                self.fields = [field.strip() for field in self.fields]
-                for i, f in enumerate(self.fields):
+                fields = self._selectsrc.split(',')
+                fields = [field.strip() for field in fields]
+                dfields = SmartDict()
+                for i, f in enumerate(fields):
                     if f.strip() == '*':
-                        self.fields = None
                         break
-                    alias = re.split(r'\s+AS\s+', f, re.IGNORECASE)
+                    alias = re.split(r'\s+AS\s+', f, 0, re.IGNORECASE)
                     if len(alias) == 2:
-                        self.fields[i] = SmartDict({alias[0].strip(): alias[1].strip()})
+                        # self.fields[i] = SmartDict({alias[0].strip(): alias[1].strip()})
+                        dfields[alias[0].strip()] = alias[1].strip()
                     else:
-                        self.fields[i] = SmartDict({alias[0].strip(): alias[0].strip()})
+                        # self.fields[i] = SmartDict({alias[0].strip(): alias[0].strip()})
+                        dfields[alias[0].strip()] = alias[0].strip()
+                self.fields = dfields
+
+            if self._fromsrc:
+                self.tables = self._fromsrc.split(',')
+                self.tables = [table.strip() for table in self.tables]
 
             if self._wheresrc:
-                lhs, operator, rhs = self.parse_where_clause(self._wheresrc)
-                self.compare_func, self.compare_func_src = self.compile_where_clause(lhs, operator, rhs)
+                self.field_param, self.operator, self.value_param = self.parse_where_clause(self._wheresrc)
+                self.compare_func, self.compare_func_src = self.compile_where_clause(self.field_param, self.operator, self.value_param)
+            else:
+                self.field_param = self.operator = self.value_param = None
+                self.compare_func, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
 
     @property
     def parts(self):
@@ -1389,9 +1407,8 @@ class Connection:
     
 
 if __name__ == '__main__':
-    sql_parser = SQLParser("SELECT id, name FROM users WHERE name = 'John Doe';")
-    print(sql_parser.parts)
-    os.sys.exit()    
+    from test import test_sql
+    test_sql()
     from test import testdb
     testdb()
     print("Done!")
