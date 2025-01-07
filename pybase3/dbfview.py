@@ -59,10 +59,12 @@ def show(stdscr, title, subtitle, textlinesgen, length):
 
     index = 0
     start_line = 0  # Line in the list where the visible window starts
+    start_column = 0  # Column in the list where the visible window starts
     prev_index = -1
     prev_start_line = -1
+    prev_start_column = -1
 
-    stdscr.addstr(1, 0, subtitle.ljust(width)[:width-1], curses.color_pair(4))
+    stdscr.addstr(1, 0, subtitle.ljust(width)[start_column:start_column+width-1], curses.color_pair(4))
 
 
     while True:
@@ -70,7 +72,7 @@ def show(stdscr, title, subtitle, textlinesgen, length):
         oldheight, oldwidth = height, width
         height, width = stdscr.getmaxyx()
         if height != oldheight or width != oldwidth:
-            stdscr.addstr(1, 0, subtitle.ljust(width)[:width-1], curses.color_pair(4))
+            stdscr.addstr(1, 0, subtitle.ljust(width)[start_column:start_column+width-1], curses.color_pair(4))
 
         visible_lines = height - 2  # Leave the first 2 lines for the title and subtitle
 
@@ -87,8 +89,9 @@ def show(stdscr, title, subtitle, textlinesgen, length):
             start_line = index - visible_lines + 1
 
         # Only redraw lines if scrolling or index changes
-        if start_line != prev_start_line or index != prev_index:
+        if start_line != prev_start_line or index != prev_index or start_column != prev_start_column:
             # Redraw visible lines
+            stdscr.addstr(1, 0, subtitle.ljust(width)[start_column:start_column+width-1], curses.color_pair(4))
             for i, line in enumerate(textlines[start_line:start_line + visible_lines]):
                 # Calculate the screen line to draw on (offset by 2 for title and subtitle)
                 screen_line = i + 2
@@ -98,7 +101,7 @@ def show(stdscr, title, subtitle, textlinesgen, length):
                     else:
                         attr = curses.color_pair(1)
                     # stdscr.addstr(screen_line, 0, line.rjust(max_line_length)[:width-1], attr)
-                    stdscr.addstr(screen_line, 0, line[:width-1], attr)
+                    stdscr.addstr(screen_line, 0, line[start_column:start_column+width-1], attr)
                 except curses.error as e:
                     sys.stderr.write(f"Error drawing line {start_line + i}: {e}\n")
                     sys.stderr.flush()
@@ -108,12 +111,17 @@ def show(stdscr, title, subtitle, textlinesgen, length):
         # Update previous state
         prev_index = index
         prev_start_line = start_line
+        prev_start_column = start_column
 
         # Wait for input
         key = stdscr.getch()
 
         # Handle key inputs
-        if key == curses.KEY_UP and index > 0:
+        if key == curses.KEY_LEFT and start_column > 0:
+            start_column -= 1
+        elif key == curses.KEY_RIGHT and start_column < width - 1:
+            start_column += 1            
+        elif key == curses.KEY_UP and index > 0:
             index -= 1
         elif key == curses.KEY_DOWN and index < length - 1:
             index += 1
