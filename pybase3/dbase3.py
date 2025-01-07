@@ -1039,11 +1039,21 @@ class DbaseFile:
                 raise ValueError(f"Unknown field type {field.type}")
         self.file.flush()
 
-    def exec(self, sql_cmd: str):
+    def execute(self, sql_cmd: str):
         """
         Executes a SQL command on the database.
         """
-        raise NotImplementedError("SQL commands are not supported as yet.")
+        # raise NotImplementedError("SQL commands are not supported as yet.")
+        sql_parser = SQLParser(sql_cmd)
+        sql_type = sql_parser.type
+        if sql_type != 'SELECT':
+            raise ValueError("Only SELECT commands are supported right now.")
+        fields = sql_parser.fields
+        records = self.fields_view(fields=fields, 
+                                   records=self.filter(sql_parser.field_param, 
+                                                       sql_parser.value_param,
+                                                       compare_function=sql_parser.compare_function))
+        return Cursor([fields[k] for k in fields.keys()], records)
 
     def fields_view(self, start=0, stop=None, step=1, fields:dict=None, records=None):
         """
@@ -1147,7 +1157,7 @@ class SQLParser:
             lhs = float(lhs)
         if rhs.replace('.', '').isdigit():
             rhs = float(rhs)
-        return lhs, operator, rhs
+        return lhs, operator.upper(), rhs
 
     @staticmethod
     def compile_where_clause(lhs, operator, rhs):
@@ -1220,7 +1230,7 @@ class SQLParser:
         self.fields:SmartDict = None
         self.tables:List[AnyStr] = None
         self.compare_func_src:str = None
-        self.compare_func:Callable = None
+        self.function:Callable = None
         self.field_param = None
         self.value_param = None
         self.operator = None
@@ -1326,10 +1336,10 @@ class SQLParser:
 
             if self._wheresrc:
                 self.field_param, self.operator, self.value_param = self.parse_where_clause(self._wheresrc)
-                self.compare_func, self.compare_func_src = self.compile_where_clause(self.field_param, self.operator, self.value_param)
+                self.compare_function, self.compare_func_src = self.compile_where_clause(self.field_param, self.operator, self.value_param)
             else:
                 self.field_param = self.operator = self.value_param = None
-                self.compare_func, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
+                self.compare_function, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
 
     @property
     def parts(self):
@@ -1337,7 +1347,7 @@ class SQLParser:
                     wheresrc=self._wheresrc)
     
     @property
-    def type(self) -> SQLType:
+    def type(self) -> str:
         return self._type.name
     
     @property
@@ -1399,6 +1409,7 @@ class Connection:
             for file in files:
                 if file.endswith('.dbf'):
                     self._files.append(os.path.join(root, file))
+        
         self.tables = [DbaseFile(file) for file in self._files]
           
     @property
@@ -1409,6 +1420,7 @@ class Connection:
 if __name__ == '__main__':
     from test import test_sql
     test_sql()
+    os.sys.exit(0)
     from test import testdb
     testdb()
     print("Done!")

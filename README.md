@@ -107,7 +107,7 @@ On top of that, there is a group of methods meant for data manipulation (add_rec
 There is also a group of methods (search, index, find, filter) to aid in retrieving selected data.
 
 At it present stage of development, there is not support for memo fields or index fields, though this is planned for future releases, should enough interest arise.
-It's also planned an `exec` method to execute SQL-like statements. not functional right now.
+Version 1.14.2 added `execute` method to execute SQL-like statements returning a cursor object.
 
 For further information see the documentation below.
 
@@ -148,7 +148,7 @@ Class to manipulate DBase III database files.
 -  `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper for search() with funcname="find". Returns the first record (dictionary) found, or None if no record meeting given criteria is found.
 -  `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper for search() with funcname="index". Returns index of the first record found, or -1 if no record meeting given criteria is found.
 -  `filter(self, fieldname, value, compare_function=None)`: Returns a list of records (dictionaries) that meet the specified criteria.
-- `exec(self, sql_cmd:str)`: Meant for retrieving data in a custom manner. Not operational yet. Invoking it raises a NotImplemented error. 
+- `execute(self, sql_cmd:str)`: Meant for retrieving data in a custom manner.
 
 ### Data listing methods
 

@@ -114,7 +114,7 @@ Además de eso, hay un grupo de métodos destinados a la manipulación de datos 
 También hay un grupo de métodos (búsqueda, índice, hallazgo, filtro) para ayudar a recuperar datos seleccionados.
 
 En su etapa actual de desarrollo, no hay soporte para campos de memo o campos de índice, aunque esto está planeado para futuras versiones, en caso de que surja suficiente interés.
-También está previsto un método `exec` para ejecutar instrucciones similares a SQL, pero no está operativo en este momento.
+La versión 1.14.2 incorpora el método `execute` para ejecutar instrucciones SQL, devolviendo un objeto Cursor.
 
 Para obtener más información, consulte la documentación a continuación.
 
@@ -155,7 +155,7 @@ Clase para manipular archivos de base de datos DBase III.
 - `find(self, fieldname, value, start=0, compare_function=None)`: Contenedor para search() con funcname="find". Devuelve el primer registro (diccionario) encontrado, o None si no se encuentra ningún registro que cumpla los criterios dados.
 - `index(self, fieldname, value, start=0, compare_function=None)`:  Contenedor para search() con funcname="index". Devuelve el índice del primer registro encontrado o -1 si no se encuentra ningún registro que cumpla los criterios dados.
 - `filter(self, fieldname, value, compare_function=None)`: Devuelve una lista de registros (diccionarios) que cumplen los criterios especificados.
-- `exec(self, sql_cmd:str)`: Diseñado para recuperar datos de forma personalizada. Aún no está operativo. Al invocarlo, se genera un error NotImplemented.
+- `execute(self, sql_cmd:str)`: Diseñado para recuperar datos de forma personalizada, con consultas SQL.
 
 ### Métodos de listado de datos
 

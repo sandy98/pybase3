@@ -44,8 +44,7 @@ def test_sql():
         for k, v in record.items():
             print(f"{k}: {v}", end=' - ' if k != 'age' else '\n')
     print("\n")
-    os.sys.exit()    
-
+    return sql_parser, kids, noldies   
 
 def mk_pediatras():
     from time import time as timestamp
@@ -90,7 +89,7 @@ def testdb():
             rm = True
         elif sys.argv[1] in ['-h', '--help'] or len(sys.argv[1]):   
             print("Usage: test.py [-d] [-r]")
-            sys.exit(1)
+            return
 
     if (dbg or rm) and os.path.exists('db/test.dbf'):
         os.remove('db/test.dbf')

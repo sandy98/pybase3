@@ -103,8 +103,7 @@ In sostanza, ogni istanza di DBaseFile, sia essa istanziata tramite un file DBas
 Oltre a ciò, c'è un gruppo di metodi pensati per la manipolazione dei dati (add_record per gli inserimenti, update_record per gli aggiornamenti e del_record per contrassegnare/deselezionare le eliminazioni).
 C'è anche un gruppo di metodi (search, index, find, filter) per aiutare a recuperare i dati selezionati.
 
-Nella fase attuale di sviluppo, non c'è supporto per i campi memo o indice, anche se questo è pianificato per le versioni future, qualora dovesse sorgere abbastanza interesse. È anche pianificato un metodo `exec` per eseguire istruzioni di tipo SQL. Non funzionante al momento.
-
+Nella fase attuale di sviluppo, non c'è supporto per i campi memo o indice, anche se questo è pianificato per le versioni future, qualora dovesse sorgere abbastanza interesse. La versione 1.14.2 aggiunge il metodo `execute` per eseguire istruzioni SQL, restituendo un oggetto Cursor.
 Per ulteriori informazioni, vedere la documentazione di seguito.
 
 ## Documentazione
@@ -144,7 +143,7 @@ Classe per manipolare i file di database DBase III.
 -  `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper per search() con funcname="find". Recupera il primo record (dizionario) trovato oppure None se non viene trovato alcun record che soddisfi i criteri specificati.
 -  `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper per search() con funcname="index". Recupera l'indice del primo record trovato, oppure -1 se non viene trovato alcun record che soddisfi i criteri specificati.
 -  `filter(self, fieldname, value, compare_function=None)`:  Recupera un elenco di record (dizionari) che soddisfano i criteri specificati.
-- `exec(self, sql_cmd:str)`: Pensato per recuperare dati in modo personalizzato. Non ancora operativo. L'invocazione genera un errore NotImplemented.
+- `execute(self, sql_cmd:str)`: progettato per recuperare i dati in modo personalizzato, con query SQL.
 
 ### Metodi di elencazione dei dati
 
