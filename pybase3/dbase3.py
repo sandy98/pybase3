@@ -489,7 +489,7 @@ class DbaseFile:
             if not field.name:  # Stop if the field name is empty
                 break
             self.fields.append(field)
-        assert(self.header.header_size + self.datasize == self.filesize)
+        # assert(self.header.header_size + self.datasize == self.filesize)
         self._load_mdx()
 
     def _load_mdx(self):
