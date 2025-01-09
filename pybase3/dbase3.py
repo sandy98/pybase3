@@ -41,7 +41,8 @@ except ImportError:
 to_bytes = lambda x: x.encode('latin1') if type(x) == str else x
 to_str = lambda x: x.decode('latin1') if type(x) == bytes else x
 
-getYear = lambda: datetime.now().year - 1900
+# getYear = lambda: datetime.now().year - 1900
+getYear = lambda: datetime.now().year - 2000
 getMonth = lambda: datetime.now().month
 getDay = lambda: datetime.now().day
 
@@ -255,6 +256,7 @@ class DbaseFile:
                 field = DbaseField(name, ftype, 0, length, decimal)
                 file.write(field.to_bytes())
             file.write(b'\x0D')
+            file.write(b'\x1A')
         dbf = cls(filename)
         return dbf
 
@@ -489,7 +491,13 @@ class DbaseFile:
             if not field.name:  # Stop if the field name is empty
                 break
             self.fields.append(field)
-        # assert(self.header.header_size + self.datasize == self.filesize)
+        try:
+            assert((self.header.header_size + self.datasize + 1) == self.filesize)
+        except AssertionError:
+            try:
+                assert((self.header.header_size + self.datasize) == self.filesize)
+            except AssertionError:
+                raise ValueError(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
         self._load_mdx()
 
     def _load_mdx(self):
@@ -633,7 +641,7 @@ class DbaseFile:
                     file.write(b'T' if record[field.name] else b'F')
                 else:
                     raise ValueError(f"Unknown field type {field.type}")
-        # file.write(b'\x1A')
+        file.write(b'\x1A')
         self.header.records -= numdeleted
         self.filesize -= numdeleted * self.header.record_size
         self.datasize = self.header.record_size * self.header.records
@@ -690,12 +698,12 @@ class DbaseFile:
                 value += val.strftime('%Y%m%d').encode('latin1')
             elif ftype == 'L':
                 value = b'T' if val else b'F'
-        self.file.seek(self.filesize)
-        self.file.write(b'\x20' + value)
+        self.file.seek(self.filesize - 1)
+        self.file.write(b'\x20' + value + b'\x1A')
         self.header.records += 1
-        self.filesize = self.header.header_size + self.header.record_size * self.header.records
+        self.filesize = self.header.header_size + self.header.record_size * self.header.records + 1
         hoy = datetime.now()
-        self.header.year = hoy.year - 1900
+        self.header.year = hoy.year - (2000 if hoy.year > 2000 else 1900)
         self.header.month = hoy.month
         self.header.day = hoy.day
         self.datasize = self.header.record_size * self.header.records
