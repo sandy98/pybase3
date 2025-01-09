@@ -497,7 +497,9 @@ class DbaseFile:
             try:
                 assert((self.header.header_size + self.datasize) == self.filesize)
             except AssertionError:
-                raise ValueError(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
+                # raise ValueError(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
+                os.sys.stderr.write(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
+                os.sys.stderr.flush()
         self._load_mdx()
 
     def _load_mdx(self):
