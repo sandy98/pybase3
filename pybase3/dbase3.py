@@ -1448,15 +1448,20 @@ class Connection:
         for root, _, files in os.walk(self.dirname):
             for file in files:
                 if file.endswith('.dbf'):
-                    self._files.append(os.path.join(root, file))
+                    self._files.append(os.path.abspath(os.path.join(root, file)))
         
-        self.tables = [DbaseFile(file) for file in self._files]
+        # self.tables = [DbaseFile(file) for file in self._files]
+        self.tables = [os.path.splitext(os.path.basename(file))[0] for file in self._files]
           
     @property
     def tablenames(self):
-        return [table.tablename for table in self.tables]
-    
+        # return [table.tablename for table in self.tables]
+        return self.tables    
 
+    @property
+    def filenames(self):
+        return self._files
+    
 if __name__ == '__main__':
     from test import test_sql
     test_sql()

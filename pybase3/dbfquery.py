@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 #-*- coding: utf_8 -*-
 
-import os, sys, cmd, subprocess
-import readline
+import os, cmd, subprocess, readline
+from argparse import ArgumentParser
 
 try:
     from .__init__ import __version__ as version
@@ -16,13 +16,30 @@ except ImportError:
 
 class SQL(cmd.Cmd):
 
-    intro = f"Welcome to pybase3 SQL shell v. {version}\nSQL for dBase III+\nType 'help' for help.\n"
     returnline = "\nBye, dBase SQL lovers...\n"
     prompt = "sql> "
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, dirname=os.getcwd(), *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.connection = Connection(os.getcwd())
+        self.cache = {}
+        self.dirname = os.path.abspath(dirname)
+        self.connection = Connection(self.dirname)
+        self.intro = f"""Welcome to pybase3 SQL shell v. {version}
+SQL for dBase III+
+Working directory: {self.dirname} / {len(self.connection.tablenames)} tables found.
+Type 'help' for help.\n
+"""
+
+    def get_table(self, tablename):
+        if tablename in self.cache:
+            return self.cache[tablename]
+        for i, name in enumerate(self.connection.tablenames):
+            if tablename.lower() == name.lower():
+                filename = self.connection.filenames[i]    
+                table = DbaseFile(filename)
+                self.cache[tablename] = table
+                return table
+        return None
 
     def emptyline(self):
         print('', end='')
@@ -38,18 +55,23 @@ class SQL(cmd.Cmd):
         tables = self.connection.tablenames
         if tables:
             for table in tables:
-                print(table)
+                print(table, end='\t')
+            print()
         else:
             print("No tables found in the current directory.")
 
     def do_fields(self, table):
         """Usage: fields <tablename>\nLists the fields in the specified table"""
-        print()
+        print(f"Fields in table '{table}':", end='\n')
         for i, name in enumerate(self.connection.tablenames):
             if table.lower() == name.lower():
-                seltable = self.connection.tables[i]
-                for field in seltable.field_names:
-                    print(field)
+                seltable = self.get_table(table)
+                if seltable:
+                    for field in seltable.field_names:
+                        print(field, end='\t')
+                    print()
+                else:
+                    print(f"Table '{table}' not found.")
                 break
 
     def do_select(self, line):
@@ -64,7 +86,10 @@ class SQL(cmd.Cmd):
             if tablename not in self.connection.tablenames:
                 print(f"Table '{tablename}' not found.")
                 return
-            table = self.connection.tables[self.connection.tablenames.index(tablename)]
+            table = self.get_table(self.connection.tablenames[self.connection.tablenames.index(tablename)])
+            if not table:
+                print(f"Table '{tablename}' not found.")
+                return
             function = "pretty_table" if len(table.field_names) < 6 else "csv"
             cursor = table.execute(line)
             recs = cursor.fetchall()
@@ -81,6 +106,11 @@ class SQL(cmd.Cmd):
         except Exception as e:
             print(e)
 
+    def do_shell(self, _):
+        """Exits to system's shell.\nType 'exit' to return to dbfquery"""
+        shellname = 'bash' if os.name == 'posix' else 'cmd'
+        subprocess.run([shellname])
+
     def do_EOF(self, eof):
         """Exit the program"""
         print(self.returnline)
@@ -95,11 +125,18 @@ class SQL(cmd.Cmd):
         return self.do_EOF('')
     
 def main():
-    sql = SQL()
+    parser = ArgumentParser(description="A simple SQL shell for dBase III+ files.")
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {version}")
+    parser.add_argument("dirname", nargs=1, default=[os.getcwd()], help="The dBase III+ directory to open.")
+    
+    args = parser.parse_args()
+
+    sql = SQL(args.dirname[0])
     if os.name == 'posix':
         subprocess.run(['clear'])
     elif os.name == 'nt':
         subprocess.run(['cls']) 
+    # print("args.dirname", args.dirname)
 
     try:
         sql.cmdloop()
