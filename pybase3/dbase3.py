@@ -814,7 +814,27 @@ class DbaseFile:
             return self._indexed_search(fieldname, value, start, funcname, compare_function)
         
         if funcname not in ("find", "index", ""):
-            raise ValueError("Invalid function name") 
+            raise ValueError("Invalid function name")
+        if not fieldname:
+            if compare_function:
+                result = compare_function(fieldname, value)
+            else:
+                result = True
+            if not result:
+                if funcname == "":
+                    return -1, None
+                elif funcname == "find":
+                    return None
+                elif funcname == "index":
+                    return -1
+            else:
+                if funcname == "":
+                    return start, self.get_record(start)
+                elif funcname == "find":
+                    return self.get_record(start)
+                elif funcname == "index":    
+                    return start
+
         field = self.get_field(fieldname)
         if not field:
             raise ValueError(f"Field {fieldname} not found")
@@ -908,10 +928,11 @@ class DbaseFile:
         index = -1
         while True:
             index, record = self.search(fieldname, value, index + 1, "", compare_function)  
-            if index < 0:
+            if index < 0 or index >= self.header.records - 1:
                 return ret
             else:    
                 ret.append(record)
+        
 
     def list(self, start=0, stop=None, fieldsep="|", records:list=None):
         """
@@ -924,7 +945,7 @@ class DbaseFile:
         l = records or (self.get_record(i) for i in range(start, stop))
         # return recordsep.join(fieldsep.join(str(record[field.name]) for field in self.fields) for record in l)
         # return (fieldsep.join(str(record[field.name]) for field in self.fields) for record in l)
-        return (fieldsep.join(str(record[fieldname]) for fieldname in record.datafields) for record in l)
+        return (fieldsep.join(str(record[fieldname] or '') for fieldname in record.datafields) for record in l)
     
     def csv(self, start=0, stop=None, records:list = None):
         """
@@ -943,9 +964,9 @@ class DbaseFile:
     @staticmethod
     def _format_field(field, record):
         if field.type == FieldType.CHARACTER.value:
-            return record.get(field.name).ljust(field.length + 2)
+            return str(record.get(field.name) or '').ljust(field.length + 2)
         else: 
-            return str(record.get(field.name)).rjust(field.length + 2)
+            return str(record.get(field.name) or '').rjust(field.length + 2)
             
     
     def table(self, start=0, stop=None, records:list = None):
@@ -996,7 +1017,7 @@ class DbaseFile:
         #record = self.get_record(index)
         names_lengths = names_lengths or zip(self.field_names, self.max_field_lengths)
         # names_lengths = names_lengths or zip(self.field_names, self.field_lengths)
-        afields = [f"{str(record.get(name)).rjust(length).ljust(length+1)}" for name, length in names_lengths]
+        afields = [f"{str(record.get(name) or '').rjust(length).ljust(length+1)}" for name, length in names_lengths]
         return fieldsep.join(afields)
     
     def lines(self, start=0, stop=None, fieldsep="", records:list=None):
@@ -1058,12 +1079,19 @@ class DbaseFile:
         sql_type = sql_parser.type
         if sql_type != 'SELECT':
             raise ValueError("Only SELECT commands are supported right now.")
-        fields = sql_parser.fields
-        records = self.fields_view(fields=fields, 
+        fieldobjs = {}
+        for field in sql_parser.fields:
+            if field == '*':
+                fieldobjs = {**fieldobjs, **{name: name for name in self.field_names}}
+                break
+            if field not in self.field_names:
+                raise ValueError(f"Field {field} not found")
+            fieldobjs = {**fieldobjs, **{field: sql_parser.fields[field]}}
+        records = self.fields_view(fields=fieldobjs, 
                                    records=self.filter(sql_parser.field_param, 
                                                        sql_parser.value_param,
                                                        compare_function=sql_parser.compare_function))
-        return Cursor([fields[k] for k in fields.keys()], records)
+        return Cursor([fieldobjs[k] for k in fieldobjs], records)
 
     def fields_view(self, start=0, stop=None, step=1, fields:dict=None, records=None):
         """
@@ -1072,7 +1100,8 @@ class DbaseFile:
         def transform(record:Record, fields:dict):
             ret = Record()
             for field in fields:
-                ret[fields[field]] = record.get(field)
+                # ret[fields[field]] = record.get(field.name)
+                ret[field] = record.get(field)
             return ret
 
         records = records or self[start:stop:step]
@@ -1329,8 +1358,7 @@ class SQLParser:
                 fields = [field.strip() for field in fields]
                 dfields = SmartDict()
                 for i, f in enumerate(fields):
-                    if f.strip() == '*':
-                        break
+                    f = f.strip()
                     alias = re.split(r'\s+AS\s+', f, 0, re.IGNORECASE)
                     if len(alias) == 2:
                         # self.fields[i] = SmartDict({alias[0].strip(): alias[1].strip()})
@@ -1338,6 +1366,8 @@ class SQLParser:
                     else:
                         # self.fields[i] = SmartDict({alias[0].strip(): alias[0].strip()})
                         dfields[alias[0].strip()] = alias[0].strip()
+                    if f == '*':
+                        break
                 self.fields = dfields
 
             if self._fromsrc:

@@ -19,9 +19,11 @@ setup(
     python_requires='>=3.6',
     entry_points={
         'console_scripts': [
+            'pybase3=pybase3.__main__:main',
             'dbfview=pybase3.dbfview:main',
             'dbftest=pybase3.test:testdb',
-            'pybase3=pybase3.__main__:main',
+            'dbfheader=pybase3.header_reader:main',
+            'dbfquery=pybase3.dbfquery:main',
         ],
     },
     license='MIT',

@@ -36,3 +36,15 @@ class SmartDict(dict):
      def parent(self):
          return super()
 
+
+def undot(dotted):
+    objstr, keystr = dotted.split(".")
+    try:
+        obj = eval(objstr)
+        value = obj[keystr]
+        return value
+    except Exception as exc:
+        print("ERROR:", exc)
+        return None
+    
+
