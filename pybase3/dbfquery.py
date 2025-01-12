@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf_8 -*-
 
-import os, cmd, subprocess, readline
+import os, sys, cmd, subprocess, readline
 from argparse import ArgumentParser
 
 try:
@@ -16,7 +16,7 @@ except ImportError:
 
 class SQL(cmd.Cmd):
 
-    returnline = "\nBye, dBase SQL lovers...\n"
+    returnline = "\nBye, thank you for using SQL with dBase III\n"
     prompt = "sql> "
 
     def __init__(self, dirname=os.getcwd(), *args, **kwargs):
@@ -127,11 +127,16 @@ Type 'help' for help.\n
 def main():
     parser = ArgumentParser(description="A simple SQL shell for dBase III+ files.")
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {version}")
-    parser.add_argument("dirname", nargs=1, default=[os.getcwd()], help="The dBase III+ directory to open.")
+    argslen = len(sys.argv)
+    if argslen > 1:
+        parser.add_argument("dirname", nargs=1, default=[os.getcwd()], help="The dBase III+ directory to open.")
     
     args = parser.parse_args()
 
-    sql = SQL(args.dirname[0])
+    if argslen > 1:
+        sql = SQL(args.dirname[0])
+    else:
+        sql = SQL()
     if os.name == 'posix':
         subprocess.run(['clear'])
     elif os.name == 'nt':

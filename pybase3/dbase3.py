@@ -161,6 +161,21 @@ class DbaseField:
     decimal: int = 0  # Decimal places for numeric fields, 1 byte
     reserved: bytes = b'\x00' * 14  #  14 reserved bytes
 
+    def __post_init__(self):
+        self._alias = self.name
+
+    @property
+    def alias(self):
+        return self._alias if self._alias != ('\x00' * 11) else self.name
+    
+    @alias.setter
+    def alias(self, value):
+        self._alias = value
+
+    @alias.deleter
+    def alias(self):
+        self._alias = '\x00' * 11
+
     def load_bytes(self, bytes):
         # Extract the name as exactly 11 bytes
         raw_name = bytes[:11].rstrip(b'\x00').strip()  # Strip null terminators
@@ -1091,7 +1106,8 @@ class DbaseFile:
                                    records=self.filter(sql_parser.field_param, 
                                                        sql_parser.value_param,
                                                        compare_function=sql_parser.compare_function))
-        return Cursor([fieldobjs[k] for k in fieldobjs], records)
+        cursor = Cursor([fieldobjs[k] for k in fieldobjs], records)
+        return cursor
 
     def fields_view(self, start=0, stop=None, step=1, fields:dict=None, records=None):
         """

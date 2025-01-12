@@ -16,4 +16,3 @@ test.dbf
 test*.dbf
 setup.sh
 autoinstall.sh
-showversion.sh
