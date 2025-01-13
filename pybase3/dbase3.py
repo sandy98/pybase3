@@ -384,7 +384,7 @@ class DbaseFile:
             conn = sqlite3.Connection(filename)
             conn.execute(self.schema)
             for record in self:
-                rec = d = SmartDict([(k, record[k]) for k in record.datafields])
+                rec = SmartDict([(k, record[k]) for k in record.datafields])
                 fieldslist = ','.join(rec.keys())
                 placeholders = ','.join('?' * len(rec))
                 values = tuple(rec.values())
