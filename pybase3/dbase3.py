@@ -572,6 +572,13 @@ class DbaseFile:
         return [field.name.strip() for field in self.fields]
     
     @property
+    def field_alias(self):
+        """
+        Returns a list with the name of each field in the database.
+        """
+        return [field.alias.strip() for field in self.fields]
+    
+    @property
     def field_types(self):
         """
         Returns a list with the type of each field in the database.
@@ -624,6 +631,20 @@ class DbaseFile:
                 res.append(result)
         return res
 
+    def as_cursor(self, records:List[Record]=None, fields:List[DbaseField]=None,
+                  start:int=0, stop:int=None, step:int=1):
+        """
+        Returns a cursor object for the database.
+        """
+        if not fields:
+            fields = self.fields
+        if not records:
+            records = self
+
+        description = [field.alias for field in fields]
+        records = (self.transform(r, fields) for r in records[start:stop:step])
+        return Cursor(description, records)
+    
     def commit(self, filename=None):
         """
         Writes the database to a file. 
@@ -812,10 +833,14 @@ class DbaseFile:
     
     def get_field(self, fieldname):
         """
-        Returns the field object with the specified name, case insensitive.
+        Returns the field object with the specified name, case sensitive.
         """
+        cond_true = lambda f: (
+            f.name.strip() == fieldname.strip()
+            or f.alias.strip() == fieldname.strip()
+            )
         for field in self.fields:
-            if field.name.strip().lower() == fieldname.strip().lower():
+            if cond_true(field):
                 return field
         return None
 
@@ -974,7 +999,6 @@ class DbaseFile:
         Returns a CSV string with the field names.
         """
         return ",".join(field_name for field_name in self.field_names)
-    
 
     @staticmethod
     def _format_field(field, record):
@@ -982,7 +1006,6 @@ class DbaseFile:
             return str(record.get(field.name) or '').ljust(field.length + 2)
         else: 
             return str(record.get(field.name) or '').rjust(field.length + 2)
-            
     
     def table(self, start=0, stop=None, records:list = None):
         """
@@ -1109,21 +1132,24 @@ class DbaseFile:
         cursor = Cursor([fieldobjs[k] for k in fieldobjs], records)
         return cursor
 
-    def fields_view(self, start=0, stop=None, step=1, fields:dict=None, records=None):
+    @staticmethod
+    def transform(record:Record, fields:List[DbaseField]):
+        ret = Record()
+        for field in fields:
+            # ret[fields[field]] = record.get(field.name)
+            ret[field.alias] = record.get(field.name) or record.get(field.alias)
+        return ret
+
+
+    def fields_view(self, start=0, stop=None, step=1, fields:List[DbaseField]=None, records=None):
         """
         Returns a generator yielding a record with fields specified in the fields dictionary.
         """
-        def transform(record:Record, fields:dict):
-            ret = Record()
-            for field in fields:
-                # ret[fields[field]] = record.get(field.name)
-                ret[field] = record.get(field)
-            return ret
-
         records = records or self[start:stop:step]
         if not fields:
-            return (record for record in records)
-        return (transform(record, fields) for record in records)
+            # return (record for record in records)
+            fields = self.fields
+        return (self.transform(record, fields) for record in records)
 
     def make_mdx(self, fieldname:str="*"):
         """
@@ -1429,7 +1455,10 @@ class Cursor:
         """
         Returns the next record from the cursor.
         """
-        return next(self.records)
+        try:
+            return next(self.records)
+        except StopIteration:
+            return None
 
     def fetchall(self):
         """
@@ -1441,7 +1470,14 @@ class Cursor:
         """
         Returns the next 'size' records from the cursor.
         """
-        return [self.fetchone() for _ in range(size)]
+        retval = []
+        for _ in range(size):
+            record = self.fetchone()
+            if record:
+                retval.append(record)
+            else:
+                break
+        return retval
 
 
 class Connection:
