@@ -113,6 +113,8 @@ Type 'help' for help.\n
                 print(", ".join(map(str, rec.values())))
         except Exception as e:
             print(e)
+        finally:
+            print()
 
     def do_shell(self, _):
         """Exits to system's shell.\nType 'exit' to return to dbfquery"""
