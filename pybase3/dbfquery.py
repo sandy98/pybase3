@@ -79,30 +79,38 @@ Type 'help' for help.\n
         line = f"select {line}{';' if not line.endswith(';') else ''}"
         print(line)
         print()
+        # try:
+        #     sqlparser = SQLParser(line)
+        #     #print(sqlparser.parts)
+        #     tablename = sqlparser.tables[0]
+        #     if tablename not in self.connection.tablenames:
+        #         print(f"Table '{tablename}' not found.")
+        #         return
+        #     table = self.get_table(self.connection.tablenames[self.connection.tablenames.index(tablename)])
+        #     if not table:
+        #         print(f"Table '{tablename}' not found.")
+        #         return
+        #     function = "pretty_table" if len(table.field_names) < 5 else "csv"
+        #     cursor = table.execute(line)
+        #     recs = cursor.fetchall()
+        #     # recs.insert(0, cursor.description)
+        #     if function == "pretty_table":
+        #         for rec in table.pretty_table(records=recs):
+        #             print(rec)
+        #     elif function == "csv":
+        #         print(table.csv_headers_line)
+        #         for rec in table.csv(records=recs):
+        #             print(rec)
+        #     else:
+        #         print(recs)
+        # except Exception as e:
+        #     print(e)
         try:
-            sqlparser = SQLParser(line)
-            #print(sqlparser.parts)
-            tablename = sqlparser.tables[0]
-            if tablename not in self.connection.tablenames:
-                print(f"Table '{tablename}' not found.")
-                return
-            table = self.get_table(self.connection.tablenames[self.connection.tablenames.index(tablename)])
-            if not table:
-                print(f"Table '{tablename}' not found.")
-                return
-            function = "pretty_table" if len(table.field_names) < 6 else "csv"
-            cursor = table.execute(line)
+            cursor = self.connection.execute(line)
             recs = cursor.fetchall()
-            # recs.insert(0, cursor.description)
-            if function == "pretty_table":
-                for rec in table.pretty_table(records=recs):
-                    print(rec)
-            elif function == "csv":
-                print(table.csv_headers_line)
-                for rec in table.csv(records=recs):
-                    print(rec)
-            else:
-                print(recs)
+            print(", ".join(cursor.description))
+            for rec in recs:
+                print(", ".join(map(str, rec.values())))
         except Exception as e:
             print(e)
 

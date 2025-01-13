@@ -638,6 +638,8 @@ class DbaseFile:
         """
         if not fields:
             fields = self.fields
+        else:
+            fields = [self.get_field(field) for field in fields]
         if not records:
             records = self
 
@@ -839,6 +841,8 @@ class DbaseFile:
             f.name.strip() == fieldname.strip()
             or f.alias.strip() == fieldname.strip()
             )
+        if isinstance(fieldname, DbaseField):
+            return fieldname
         for field in self.fields:
             if cond_true(field):
                 return field
@@ -1125,17 +1129,21 @@ class DbaseFile:
             if field not in self.field_names:
                 raise ValueError(f"Field {field} not found")
             fieldobjs = {**fieldobjs, **{field: sql_parser.fields[field]}}
-        records = self.fields_view(fields=fieldobjs, 
+        selectedfields = []
+        for field in fieldobjs:
+            f = self.get_field(field)
+            f.alias = fieldobjs[field]
+            selectedfields.append(f)
+        records = self.fields_view(fields=selectedfields, 
                                    records=self.filter(sql_parser.field_param, 
                                                        sql_parser.value_param,
                                                        compare_function=sql_parser.compare_function))
-        cursor = Cursor([fieldobjs[k] for k in fieldobjs], records)
+        cursor = Cursor(description=[f.alias for f in selectedfields], records=records)
         return cursor
 
-    @staticmethod
-    def transform(record:Record, fields:List[DbaseField]):
+    def transform(self, record:Record, fields:List[DbaseField]):
         ret = Record()
-        for field in fields:
+        for field in [self.get_field(f) for f in fields]:
             # ret[fields[field]] = record.get(field.name)
             ret[field.alias] = record.get(field.name) or record.get(field.alias)
         return ret
@@ -1308,7 +1316,7 @@ class SQLParser:
         self._sql = sqlstr
         self._type:SQLType = None
 
-        self.fields:SmartDict = None
+        self.fields:List[DbaseField] = None
         self.tables:List[AnyStr] = None
         self.compare_func_src:str = None
         self.function:Callable = None
@@ -1373,7 +1381,7 @@ class SQLParser:
                 self._selectsrc = d.get('selectsrc').strip()
                 self._selend = d.get('selend').strip()
             else:
-                raise ValueError(f"Invalid SELECT command: '{self._sql}'")
+                raise ValueError(f"Invalid SELECT clause: '{self._sql}'")
             if self._selend != ';':
                 m = self.from_re.match(self._sql.strip())
                 if m:
@@ -1381,7 +1389,7 @@ class SQLParser:
                     self._fromsrc = d.get('fromsrc').strip()
                     self._fromend = d.get('fromend').strip()
                 else:
-                    raise ValueError(f"Invalid FROM command: '{self._sql}'")
+                    raise ValueError(f"Invalid FROM clause: '{self._sql}'")
                 if self._fromend != ';':
                     m = self.where_re.match(self._sql.strip())
                     if m:
@@ -1389,11 +1397,15 @@ class SQLParser:
                         self._wheresrc = d.get('wheresrc').strip()
                         self._whereend = d.get('whereend').strip()
                     else:
-                        raise ValueError(f"Invalid WHERE command: '{self._sql}'")   
+                        raise ValueError(f"Invalid WHERE clause: '{self._sql}'")   
                 else:
                     self._wheresrc = self._whereend = None
             else:
                 self._fromsrc = self._fromend = self._wheresrc = self._whereend = None
+
+            if self._fromsrc:
+                self.tables = self._fromsrc.split(',')
+                self.tables = [table.strip() for table in self.tables]
 
             if self._selectsrc:
                 fields = self._selectsrc.split(',')
@@ -1411,10 +1423,6 @@ class SQLParser:
                     if f == '*':
                         break
                 self.fields = dfields
-
-            if self._fromsrc:
-                self.tables = self._fromsrc.split(',')
-                self.tables = [table.strip() for table in self.tables]
 
             if self._wheresrc:
                 self.field_param, self.operator, self.value_param = self.parse_where_clause(self._wheresrc)
@@ -1441,15 +1449,15 @@ class Cursor:
     description: List[AnyStr] = field(default_factory=list)
     records: Generator = None
 
-    # def __post_init__(self):
-    #     self._init()
-
-    # def _init(self):
-    #     """
-    #     Initializes fields.
-    #     """
-    #     self.description = []
-    #     self.records = None
+    def __init__(self, description:List[str]=None, fields:List[DbaseField]=None, 
+                 records:List[Record]=None, **kwargs):
+        self.description = description or [] 
+        self.fields = fields
+        self.records = records
+        if '_connection' in kwargs:
+            self._connection = kwargs['_connection']
+        else:
+            self._connection = None
 
     def fetchone(self):
         """
@@ -1479,6 +1487,19 @@ class Cursor:
                 break
         return retval
 
+    def execute(self, sql:str):
+        if not self._connection:
+            raise ValueError("No connection, cannot execute SQL command")
+        sql_parser = SQLParser(sql)
+        if sql_parser.type != 'SELECT':
+            raise ValueError("Only SELECT commands are supported right now.")
+        for i, table in enumerate(self._connection.tables):
+            if table == sql_parser.tables[0]:
+                dbf = DbaseFile(self._connection.filenames[i])
+                cursor = dbf.execute(sql)
+                return cursor
+        raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
+ 
 
 class Connection:
     def __init__(self, dirname:str):
@@ -1513,6 +1534,20 @@ class Connection:
     @property
     def filenames(self):
         return self._files
+    
+    def Cursor(self):
+        return Cursor(_connection=self)
+    
+    def execute(self, sql:str):
+        sql_parser = SQLParser(sql)
+        if sql_parser.type != 'SELECT':
+            raise ValueError("Only SELECT commands are supported right now.")
+        for i, table in enumerate(self.tables):
+            if table == sql_parser.tables[0]:
+                dbf = DbaseFile(self.filenames[i])
+                cursor = dbf.execute(sql)
+                return cursor
+        raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
     
 if __name__ == '__main__':
     from test import test_sql
