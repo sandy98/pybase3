@@ -108,7 +108,7 @@ Type 'help' for help.\n
         try:
             cursor = self.connection.execute(line)
             recs = cursor.fetchall()
-            print(", ".join(cursor.description))
+            print(", ".join(t[0] for t in cursor.description))
             for rec in recs:
                 print(", ".join(map(str, rec.values())))
         except Exception as e:

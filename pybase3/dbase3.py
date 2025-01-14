@@ -643,7 +643,8 @@ class DbaseFile:
         if not records:
             records = self
 
-        description = [field.alias for field in fields]
+        description = [(field.alias, field.name, field.type, 
+                        field.length, field.decimal) for field in fields]
         records = (self.transform(r, fields) for r in records[start:stop:step])
         return Cursor(description, records)
     
@@ -1138,7 +1139,8 @@ class DbaseFile:
                                    records=self.filter(sql_parser.field_param, 
                                                        sql_parser.value_param,
                                                        compare_function=sql_parser.compare_function))
-        cursor = Cursor(description=[f.alias for f in selectedfields], records=records)
+        cursor = Cursor(description=[(f.alias, f.name, f.type, 
+                                      f.length, f.decimal) for f in selectedfields], records=records)
         return cursor
 
     def transform(self, record:Record, fields:List[DbaseField]):
@@ -1446,10 +1448,11 @@ class SQLParser:
     
 @dataclass
 class Cursor:
-    description: List[AnyStr] = field(default_factory=list)
+    description: List[Tuple[str, str, str, int, int]] = field(default_factory=list)
     records: Generator = None
 
-    def __init__(self, description:List[str]=None, fields:List[DbaseField]=None, 
+    def __init__(self, description:List[Tuple[str, str, str, int, int]]=None, 
+                 fields:List[DbaseField]=None, 
                  records:List[Record]=None, **kwargs):
         self.description = description or [] 
         self.fields = fields
