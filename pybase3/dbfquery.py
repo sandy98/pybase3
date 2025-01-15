@@ -9,10 +9,17 @@ try:
 except ImportError:
     from __init__ import __version__ as version
 try:    
-    from .dbase3 import DbaseFile, Connection, Cursor, SQLParser
+    from .dbase3 import DbaseFile, Connection
+    from .dbase3 import make_raw_lines, make_list_lines, make_csv_lines
+    from .dbase3 import make_table_lines, make_pretty_table_lines
+    print("Imported from package")
 except ImportError:
-    from dbase3 import DbaseFile, Connection, Cursor, SQLParser
+    from dbase3 import DbaseFile, Connection
+    from dbase3 import make_raw_lines, make_list_lines, make_csv_lines
+    from dbase3 import make_table_lines, make_pretty_table_lines
+    print("Imported from local")
 
+display_function = make_pretty_table_lines
 
 class SQL(cmd.Cmd):
 
@@ -49,6 +56,15 @@ Type 'help' for help.\n
         """Prints the version of the program"""
         print(f"v. {version}")
 
+    def do_mode(self, mode):
+        """Usage: mode <mode>\nSets the display mode. Available modes: raw, list, csv, table, pretty_table"""
+        global display_function
+        if mode not in ('raw', 'list', 'csv', 'table', 'pretty_table'):
+            print("Invalid mode. Available modes: raw, list, csv, table, pretty_table")
+            return
+        display_function = eval(f"make_{mode}_lines")
+        print(f"Mode set to '{mode}', display function: {display_function.__name__}")
+
     def do_tables(self, _):
         """Lists the tables in the current directory"""
         print()
@@ -79,38 +95,9 @@ Type 'help' for help.\n
         line = f"select {line}{';' if not line.endswith(';') else ''}"
         print(line)
         print()
-        # try:
-        #     sqlparser = SQLParser(line)
-        #     #print(sqlparser.parts)
-        #     tablename = sqlparser.tables[0]
-        #     if tablename not in self.connection.tablenames:
-        #         print(f"Table '{tablename}' not found.")
-        #         return
-        #     table = self.get_table(self.connection.tablenames[self.connection.tablenames.index(tablename)])
-        #     if not table:
-        #         print(f"Table '{tablename}' not found.")
-        #         return
-        #     function = "pretty_table" if len(table.field_names) < 5 else "csv"
-        #     cursor = table.execute(line)
-        #     recs = cursor.fetchall()
-        #     # recs.insert(0, cursor.description)
-        #     if function == "pretty_table":
-        #         for rec in table.pretty_table(records=recs):
-        #             print(rec)
-        #     elif function == "csv":
-        #         print(table.csv_headers_line)
-        #         for rec in table.csv(records=recs):
-        #             print(rec)
-        #     else:
-        #         print(recs)
-        # except Exception as e:
-        #     print(e)
         try:
-            cursor = self.connection.execute(line)
-            recs = cursor.fetchall()
-            print(", ".join(t[0] for t in cursor.description))
-            for rec in recs:
-                print(", ".join(map(str, rec.values())))
+            for l in display_function(self.connection.execute(line)):
+                print(l)
         except Exception as e:
             print(e)
         finally:

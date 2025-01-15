@@ -641,11 +641,11 @@ class DbaseFile:
         else:
             fields = [self.get_field(field) for field in fields]
         if not records:
-            records = self
+            records = self[start:stop:step]
 
-        description = [(field.alias, field.name, field.type, 
-                        field.length, field.decimal) for field in fields]
-        records = (self.transform(r, fields) for r in records[start:stop:step])
+        description = [(i, field.alias, field.name, field.type, 
+                        field.length, field.decimal) for i, field in enumerate(fields)]
+        records = (self.transform(r, fields) for r in records)
         return Cursor(description, records)
     
     def commit(self, filename=None):
@@ -1008,7 +1008,7 @@ class DbaseFile:
     @staticmethod
     def _format_field(field, record):
         if field.type == FieldType.CHARACTER.value:
-            return str(record.get(field.name) or '').ljust(field.length + 2)
+            return str(record.get(field.name) or record.get(field.alias) or '').ljust(field.length + 2)
         else: 
             return str(record.get(field.name) or '').rjust(field.length + 2)
     
@@ -1139,8 +1139,8 @@ class DbaseFile:
                                    records=self.filter(sql_parser.field_param, 
                                                        sql_parser.value_param,
                                                        compare_function=sql_parser.compare_function))
-        cursor = Cursor(description=[(f.alias, f.name, f.type, 
-                                      f.length, f.decimal) for f in selectedfields], records=records)
+        cursor = Cursor(description=[(i, f.alias, f.name, f.type, 
+                                      f.length, f.decimal) for i, f in enumerate(selectedfields)], records=records)
         return cursor
 
     def transform(self, record:Record, fields:List[DbaseField]):
@@ -1448,14 +1448,12 @@ class SQLParser:
     
 @dataclass
 class Cursor:
-    description: List[Tuple[str, str, str, int, int]] = field(default_factory=list)
+    description: List[Tuple[int, str, str, str, int, int]] = field(default_factory=list)
     records: Generator = None
 
     def __init__(self, description:List[Tuple[str, str, str, int, int]]=None, 
-                 fields:List[DbaseField]=None, 
                  records:List[Record]=None, **kwargs):
         self.description = description or [] 
-        self.fields = fields
         self.records = records
         if '_connection' in kwargs:
             self._connection = kwargs['_connection']
@@ -1467,7 +1465,7 @@ class Cursor:
         Returns the next record from the cursor.
         """
         try:
-            return next(self.records)
+            return next(self.records) if self.records else None
         except StopIteration:
             return None
 
@@ -1475,7 +1473,7 @@ class Cursor:
         """
         Returns all records from the cursor.
         """
-        return list(self.records)
+        return list(self.records) if self.records else []
 
     def fetchmany(self, size):
         """
@@ -1493,15 +1491,17 @@ class Cursor:
     def execute(self, sql:str):
         if not self._connection:
             raise ValueError("No connection, cannot execute SQL command")
-        sql_parser = SQLParser(sql)
-        if sql_parser.type != 'SELECT':
-            raise ValueError("Only SELECT commands are supported right now.")
-        for i, table in enumerate(self._connection.tables):
-            if table == sql_parser.tables[0]:
-                dbf = DbaseFile(self._connection.filenames[i])
-                cursor = dbf.execute(sql)
-                return cursor
-        raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
+        return self._connection.execute(sql)
+    
+        # sql_parser = SQLParser(sql)
+        # if sql_parser.type != 'SELECT':
+        #     raise ValueError("Only SELECT commands are supported right now.")
+        # for i, table in enumerate(self._connection.tables):
+        #     if table == sql_parser.tables[0]:
+        #         dbf = DbaseFile(self._connection.filenames[i])
+        #         cursor = dbf.execute(sql)
+        #         return cursor
+        # raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
  
 
 class Connection:
@@ -1551,12 +1551,123 @@ class Connection:
                 cursor = dbf.execute(sql)
                 return cursor
         raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
-    
+
+def connect(dirname:str):
+    return Connection(dirname)
+
+toplines = {
+    'pretty_table': {'left': BoxType.UP_L.value, 
+                     'join': BoxType.T_DOWN.value,
+                      'line': BoxType.HORZ.value,
+                      'right': BoxType.UP_R.value
+                    },
+    'table': {'left': '+', 'join': '+', 'line': '-', 'right': '+'},
+    'line':  {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+    'list':  {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+    'csv':   {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+}
+
+seplines = {
+    'pretty_table': {'left': BoxType.T_L.value, 
+                     'join': BoxType.CROSS.value,
+                      'line': BoxType.HORZ.value,
+                      'right': BoxType.T_R.value
+                    },
+    'table': {'left': '+', 'join': '+', 'line': '-', 'right': '+'},
+    'line':  {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+    'list':  {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+    'csv':   {'left': ' ', 'join': ' ','line': ' ', 'right': ' '},
+}
+
+bottomlines = {
+    'pretty_table': {'left': BoxType.DOWN_L.value, 
+                     'join': BoxType.T_UP.value,
+                      'line': BoxType.HORZ.value,
+                      'right': BoxType.DOWN_R.value
+                    },
+    'table': {'left': '+', 'join': '+', 'line': '-', 'right': '+'},
+    'line':  {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+    'list':  {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+    'csv':   {'left': ' ', 'join': ' ', 'line': ' ', 'right': ' '},
+}
+
+separators = {
+    'pretty_table': BoxType.VERT.value,
+    'table': '|',
+    'line':  ' ',
+    'list':  '|',
+    'csv':   ',',
+}
+
+def make_topline(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    d = toplines[linetype]
+    string = d['left']
+    string += d['join'].join([d['line'] * max([t[4], len(t[1])]) for t in description])
+    string += d['right']
+    return string
+
+def make_bottomline(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    d = bottomlines[linetype]
+    string = d['left']
+    string += d['join'].join([d['line'] * max([t[4], len(t[1])]) for t in description])
+    string += d['right']
+    return string
+
+def make_intermediateline(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    d = seplines[linetype]
+    string = d['left']
+    string += d['join'].join([d['line'] * max([t[4], len(t[1])]) for t in description])
+    string += d['right']
+    return string
+
+def make_header_line(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    d = separators[linetype]
+    string = d if linetype  != 'csv' else ' '
+    string += d.join([t[1].center(max([t[4], len(t[1])])) for t in description])
+    string += d if linetype  != 'csv' else ' '
+    return string
+
+def make_cursor_line(linetype:str, r: Record, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    adjstr = lambda v, w:  str(v).rjust(w) if str(v).isdigit() else str(v).ljust(w)
+    d = separators[linetype]
+    string = d if linetype  != 'csv' else ' '
+    string += d.join([adjstr(r[t[1]], max([t[4], len(t[1])])) for t in description])
+    string += d if linetype  != 'csv' else ' '
+    return string
+
+def make_cursor_lines(linetype:str, curr: Cursor)-> Generator[str, None, None]:
+    description = curr.description
+    yield make_topline(linetype, description)
+    yield make_header_line(linetype, description)
+    for record in curr.fetchall():
+        if linetype in ('pretty_table', 'table'):
+            yield make_intermediateline(linetype, description)
+        yield make_cursor_line(linetype, record, description)
+    yield make_bottomline(linetype, description)
+
+def make_raw_lines(curr: Cursor)-> Generator[str, None, None]:
+    return make_cursor_lines('line', curr)
+
+def make_list_lines(curr: Cursor)-> Generator[str, None, None]:
+    return make_cursor_lines('list', curr)
+
+def make_csv_lines(curr: Cursor)-> Generator[str, None, None]:
+    return make_cursor_lines('csv', curr)
+
+def make_table_lines(curr: Cursor)->Generator[str, None, None]:
+    return make_cursor_lines('table', curr)
+
+def make_pretty_table_lines(curr: Cursor)-> Generator[str, None, None]:
+    return make_cursor_lines('pretty_table', curr)
+
 if __name__ == '__main__':
-    from test import test_sql
-    test_sql()
-    os.sys.exit(0)
-    from test import testdb
-    testdb()
-    print("Done!")
+    # teams = DbaseFile('db/teams.dbf')
+    # curr = teams.as_cursor()
+    # from test import test_sql
+    # test_sql()
+    # os.sys.exit(0)
+    # from test import testdb
+    # testdb()
+    # print("Done!")
+    pass
     
