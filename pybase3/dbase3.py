@@ -631,23 +631,6 @@ class DbaseFile:
                 res.append(result)
         return res
 
-    def as_cursor(self, records:List[Record]=None, fields:List[DbaseField]=None,
-                  start:int=0, stop:int=None, step:int=1):
-        """
-        Returns a cursor object for the database.
-        """
-        if not fields:
-            fields = self.fields
-        else:
-            fields = [self.get_field(field) for field in fields]
-        if not records:
-            records = self[start:stop:step]
-
-        description = [(i, field.alias, field.name, field.type, 
-                        field.length, field.decimal) for i, field in enumerate(fields)]
-        records = (self.transform(r, fields) for r in records)
-        return Cursor(description, records)
-    
     def commit(self, filename=None):
         """
         Writes the database to a file. 
@@ -973,7 +956,7 @@ class DbaseFile:
         index = -1
         while True:
             index, record = self.search(fieldname, value, index + 1, "", compare_function)  
-            if index < 0 or index >= self.header.records - 1:
+            if index < 0 or index >= self.header.records:
                 return ret
             else:    
                 ret.append(record)
@@ -1113,6 +1096,30 @@ class DbaseFile:
                 raise ValueError(f"Unknown field type {field.type}")
         self.file.flush()
 
+    def transform(self, record:Record, fields:List[DbaseField]):
+        ret = Record()
+        for field in [self.get_field(f) for f in fields]:
+            # ret[fields[field]] = record.get(field.name)
+            ret[field.alias] = record.get(field.name) or record.get(field.alias)
+        return ret
+
+    def as_cursor(self, records:List[Record]=None, fields:List[DbaseField]=None,
+                  start:int=0, stop:int=None, step:int=1):
+        """
+        Returns a cursor object for the database.
+        """
+        if not fields:
+            fields = self.fields
+        else:
+            fields = [self.get_field(field) for field in fields]
+        if not records:
+            records = self[start:stop:step]
+
+        description = [(i, field.alias, field.name, field.type, 
+                        field.length, field.decimal) for i, field in enumerate(fields)]
+        records = (self.transform(r, fields) for r in records)
+        return Cursor(description, records)
+
     def execute(self, sql_cmd: str):
         """
         Executes a SQL command on the database.
@@ -1135,21 +1142,14 @@ class DbaseFile:
             f = self.get_field(field)
             f.alias = fieldobjs[field]
             selectedfields.append(f)
-        records = self.fields_view(fields=selectedfields, 
-                                   records=self.filter(sql_parser.field_param, 
-                                                       sql_parser.value_param,
-                                                       compare_function=sql_parser.compare_function))
-        cursor = Cursor(description=[(i, f.alias, f.name, f.type, 
-                                      f.length, f.decimal) for i, f in enumerate(selectedfields)], records=records)
+        filteredrecords = self.filter(sql_parser.field_param, 
+                                      sql_parser.value_param,
+                                      compare_function=sql_parser.compare_function)
+        records = self.fields_view(fields=selectedfields, records=filteredrecords)
+        cursor = Cursor(description=[(i, f.alias, f.name, f.type, f.length, f.decimal) 
+                                     for i, f in enumerate(selectedfields)], 
+                                     records=records)
         return cursor
-
-    def transform(self, record:Record, fields:List[DbaseField]):
-        ret = Record()
-        for field in [self.get_field(f) for f in fields]:
-            # ret[fields[field]] = record.get(field.name)
-            ret[field.alias] = record.get(field.name) or record.get(field.alias)
-        return ret
-
 
     def fields_view(self, start=0, stop=None, step=1, fields:List[DbaseField]=None, records=None):
         """
@@ -1666,6 +1666,10 @@ if __name__ == '__main__':
     # from test import test_sql
     # test_sql()
     # os.sys.exit(0)
+    teams = DbaseFile('db/teams.dbf')
+    curr = teams.execute("select * from teams where id > 0;")
+    recteams = curr.fetchall()
+    print(f"There are {len(recteams)} teams.")
     # from test import testdb
     # testdb()
     # print("Done!")
