@@ -838,6 +838,10 @@ class DbaseFile:
         starting from the specified index, for which the specified comparison function returns True.
         It will try to use the field index if available.
         """
+        for i, alias in enumerate(self.field_alias):
+            if alias == fieldname:
+                fieldname = self.fields[i].name
+                
         if fieldname in self.indexes:
             return self._indexed_search(fieldname, value, start, funcname, compare_function)
         
@@ -1280,9 +1284,9 @@ class SQLParser:
                 python_condition = f"f {operator_map[operator]} {rhs}"
         elif operator.upper() == "LIKE":
             # For LIKE, use Python's `in` for simplicity
-            # python_condition = f"'{rhs}' in record['{lhs}']"
-            # python_condition = f"'{rhs}' in {lhs}"
-            python_condition = f"'{rhs}' in f"
+            # python_condition = f"'{rhs}' in f"
+            pat = "^" + rhs.replace("%", r"[\w\s\.]+") + "$"
+            python_condition = f"re.match('{pat}', f, re.IGNORECASE)"
         else:
             raise ValueError(f"Unsupported operator: {operator}")
 

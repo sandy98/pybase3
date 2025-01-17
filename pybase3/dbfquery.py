@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #-*- coding: utf_8 -*-
 
-import os, sys, cmd, subprocess, readline
+import os, sys, cmd, subprocess
+# import readline
 from argparse import ArgumentParser
 
 try:    
@@ -100,6 +101,14 @@ Type 'help' for help.\n
             print(e)
         finally:
             print()
+
+    def do_view(self, table):
+        """Usage: view <tablename>\nShows the entire table using external utility 'dbfview' """
+        table = self.get_table(table)
+        if table:
+            subprocess.run(['dbfview', table.filename])
+        else:
+            print(f"Table '{table}' not found.")
 
     def do_shell(self, _):
         """Exits to system's shell.\nType 'exit' to return to dbfquery"""
