@@ -955,7 +955,10 @@ class DbaseFile:
         ret = []
         index = -1
         while True:
-            index, record = self.search(fieldname, value, index + 1, "", compare_function)  
+            index += 1
+            if index >= self.header.records:
+                return ret
+            index, record = self.search(fieldname, value, index, "", compare_function)  
             if index < 0 or index >= self.header.records:
                 return ret
             else:    
@@ -1155,9 +1158,8 @@ class DbaseFile:
         """
         Returns a generator yielding a record with fields specified in the fields dictionary.
         """
-        records = records or self[start:stop:step]
+        records = records if isinstance(records, list) else self[start:stop:step]
         if not fields:
-            # return (record for record in records)
             fields = self.fields
         return (self.transform(record, fields) for record in records)
 
@@ -1240,15 +1242,21 @@ class SQLParser:
     @staticmethod
     def parse_where_clause(wheresrc):
         # Regular expression to extract the components of the WHERE clause
-        match = re.match(r"(\w+)\s*(=|<|>|<=|>=|!=|LIKE)\s*'?([^']*)'?", wheresrc, re.IGNORECASE)
+        match = re.match(r"(\w+)\s*(=|<=|>=|<|>|!=|LIKE)\s*'?([^']*)'?", wheresrc, re.IGNORECASE)
         if not match:
             raise ValueError("Invalid WHERE clause format")
         lhs, operator, rhs = match.groups()
         if lhs.replace('.', '').isdigit():
-            lhs = float(lhs)
+            if '.' in lhs:
+                lhs = float(lhs)
+            else:
+                lhs = int(lhs)
         if rhs.replace('.', '').isdigit():
-            rhs = float(rhs)
-        return lhs, operator.upper(), rhs
+            if '.' in rhs:
+                rhs = float(rhs)
+            else:
+                rhs = int(rhs)
+        return lhs, operator, rhs
 
     @staticmethod
     def compile_where_clause(lhs, operator, rhs):
@@ -1661,11 +1669,14 @@ def make_pretty_table_lines(curr: Cursor)-> Generator[str, None, None]:
     return make_cursor_lines('pretty_table', curr)
 
 if __name__ == '__main__':
-    # teams = DbaseFile('db/teams.dbf')
-    # curr = teams.as_cursor()
-    # from test import test_sql
-    # test_sql()
-    # os.sys.exit(0)
+    dbf = DbaseFile("db/teams.dbf")
+    curr = dbf.execute("SELECT * FROM teams where id >= 3;")
+    rows = curr.fetchall()
+    print(f"There are {len(rows)} rows.")
+    for row in rows:
+        print(row.nombre)
+    os.sys.exit(0)
+#############################################################
     teams = DbaseFile('db/teams.dbf')
     curr = teams.execute("select * from teams where id > 0;")
     recteams = curr.fetchall()
