@@ -3,17 +3,19 @@
 </p>
 
 <!--![PyPI - Current Version](https://img.shields.io/pypi/v/pybase3)-->
+
 <p>
   <a href="https://pypi.org/project/pybase3">
     <img src="https://img.shields.io/pypi/v/pybase3" alt="PyPI - Current Version">
   </a>
+  <img src="https://img.shields.io/pypi/dm/pybase3">
 </p>
 
 # Biblioteca Python para DBase III
 
 Biblioteca de Python diseñada para manipular archivos de bases de datos DBase III. Permite leer, escribir, agregar y actualizar registros en la base de datos.
 
-Aunque este formato de archivo para bases de datos ya no se utiliza en gran medida, el presente trabajo es una miniherramienta útil para recuperar datos antiguos, así como un homenaje a una hermosa parte de la historia de la informática.
+Aunque este formato de archivo para bases de datos ya no se utiliza en gran medida, el presente trabajo es una herramienta útil para recuperar datos antiguos, así como un homenaje a una hermosa parte de la historia de la informática.
 
 A partir de las versiones actualizadas el 4 de enero de 2025, `pybase3` admite la indexación a través de archivos `.pmdx` (Python + .mdx), lo que da como resultado consultas sorprendentemente rápidas. Consulte a continuación para obtener más detalles.
 

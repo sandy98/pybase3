@@ -7,13 +7,14 @@
   <a href="https://pypi.org/project/pybase3">
     <img src="https://img.shields.io/pypi/v/pybase3" alt="PyPI - Current Version">
   </a>
+  <img src="https://img.shields.io/pypi/dm/pybase3">
 </p>
 
 # DBase III Python Library
 
 Python library meant to manipulate DBase III database files. It allows reading, writing, adding, and updating records in the database.
 
-Even though this file format for databases is largely no longer in use, the present work is a minitool useful to retrieve legacy data, as much as a tribute to a beautiful part of computer history.
+Even though this file format for databases is largely no longer in use, the present work is a useful tool to retrieve legacy data, as much as a tribute to a beautiful part of computer history.
 
 Initiating from versions updated on 2025-01-04, `pybase3` supports indexing through `.pmdx` files (Python + .mdx), which results in astonishingly fast queries. See below for details.
 
