@@ -31,7 +31,7 @@ cd pybase3
 
 oppure
 
-```bash 
+```bash
 pip install pybase3
 ```
 
@@ -59,10 +59,13 @@ print(test.filter('name', 'ja', compare_function=self.istartswith))
 ```bash
 python3 dbfview.py <dbf_file>
 ```
+
 o, ancora meglio, se pybase3 è installato usando pip, installerà dbfview come uno script, in questo modo e possibile di fare così:
+
 ```bash
 dbfview <dbf_file>
 ```
+
 Una comoda utilità basata su CLI curses per esplorare i file .dbf.
 
 ### Utilità di test
@@ -70,10 +73,13 @@ Una comoda utilità basata su CLI curses per esplorare i file .dbf.
 ```bash
 python3 dbftest.py [-r|-d]
 ```
+
 o, ancora meglio, se pybase3 è installato tramite pip, installerà dbftest come script, quindi:
+
 ```bash
 dbftest [-r|-d]
 ```
+
 Questo è un semplice script di test per il modulo dbase3.
 Crea un database di test (`db/test.dbf`), aggiorna alcuni record e ne elimina uno.
 Quindi scrive le modifiche nel file del database.
@@ -84,17 +90,21 @@ Lo script creerà un file 'test.dbf' nella directory 'db' se non esiste.
 ### Utilizzo a livello di modulo
 
 Emettendo il comando:
+
 ```bash
 python3 -m pybase3 [-v|-i|-h]
 ```
+
 viene richiamato il modulo stesso (più specificamente, __main__.py), con conseguente attraversamento del file system alla ricerca di file .dbf. Alla fine, se la ricerca ha esito positivo, all'utente viene offerto un menu numerato di file dbf esistenti, pronti per essere letti da dbfview.
 
 A partire dalla versione 1.9.5 sono state aggiunte nuove opzioni: -v, --version per recuperare la versione corrente del software, -i, --info per ottenere informazioni complete e -h, --help per le istruzioni d'uso.
 
-Un'opzione della riga di comando ```pybase3``` è stata aggiunta anche nella versione 1.9.5, che funziona allo stesso modo dell'invocazione del modulo, ad esempio:
+Un'opzione della riga di comando ``pybase3`` è stata aggiunta anche nella versione 1.9.5, che funziona allo stesso modo dell'invocazione del modulo, ad esempio:
+
 ```bash
 pybase3 [-v|-i|-h]
 ```
+
 ### Commenti
 
 Il modulo stesso, la classe DBaseFile e tutti i suoi metodi sono ampiamente documentati, quindi dovrebbe essere facile da seguire.
@@ -119,12 +129,12 @@ Classe per manipolare i file di database DBase III.
 - `__init__(self, filename: str)`: Inizializza un'istanza di DBase3File da un file dbf esistente.
 - `__del__(self)`: Chiude il file del database quando l'istanza viene distrutta.
 - `__len__(self)`: Recupera il numero di record nel database, inclusi i record contrassegnati per essere eliminati. Consente la scrittura: `len(dbasefileobj)`
-- `__getitem__(self, key)`: Recupera un singolo record o un elenco di record (se si usa la notazione slice) dal database. Consente: `dbasefileobj[3]` or `dbasefileobj[3:7]`  
+- `__getitem__(self, key)`: Recupera un singolo record o un elenco di record (se si usa la notazione slice) dal database. Consente: `dbasefileobj[3]` or `dbasefileobj[3:7]`
 - `__iter__(self)`: Recupera un iteratore sui record nel database. Consente `for record in dbasefileobj: ...`
 - `__str__(self)`:  Recupera una rappresentazione testuale del database.
 - `_init(self)`: Iinizializza la struttura del database leggendo l'intestazione e i campi. Pensato per uso privato da parte di istanze DBaseFile.
 - `def _test_key(self, key)`: Verifica se la chiave è compresa nell'intervallo valido degli indici dei record. Genera un IndexError se la chiave è fuori dall'intervallo. Pensato solo per uso interno.
-    
+
 ### Metodi di classe.
 
 - `create(cls, filename: str, fields: List[Tuple[str, FieldType, int, int]])`: Crea un nuovo file di database DBase III con i campi specificati. Recupera un oggetto DbaseFile che punta al file dbase appena creato.
@@ -133,16 +143,16 @@ Classe per manipolare i file di database DBase III.
 
 - `add_record(self, record_data: dict)`: Aggiunge un nuovo record al database.
 - `update_record(self, index: int, record_data: dict)`: Aggiorna un record esistente nel database.
-- `save_record(self, key, record)`: Scrive un record (dizionario con nomi di campo e valori di campo) nel database all'indice specificato. Parametri: la chiave è l'indice (posizione basata su 0 nel file dbf). record è un dizionario corrispondente a un elemento nel database(i.e: {'id': 1, 'name': "Jane Doe"}) Utilizzato internamente da `update_record` 
+- `save_record(self, key, record)`: Scrive un record (dizionario con nomi di campo e valori di campo) nel database all'indice specificato. Parametri: la chiave è l'indice (posizione basata su 0 nel file dbf). record è un dizionario corrispondente a un elemento nel database(i.e: {'id': 1, 'name': "Jane Doe"}) Utilizzato internamente da `update_record`
 - `del_record(self, key, value = True)`: Contrassegna per l'eliminazione il record identificato dall'indice 'key', o lo deseleziona se `value == False`. Per cancellare efficacemente il record dal disco, l'eliminazione deve essere confermata tramite `dbasefileobj.commit()`
 - `commit(self, filename=None)`: Precedentemente denominato `write`, scrive il file corrente sul disco, saltando i record contrassegnati per l'eliminazione. Se viene fornito un nome file, diverso dal nome file corrente, salva il file del database nella nuova destinazione, mantenendo il nome file precedente così com'è. Vale la pena notare che `add_record` e `update_record` eseguono il commit delle modifiche su disco immediatamente, quindi non è necessario chiamare `commit` dopo averle usate. Non fa male farlo, comunque.
 
 ### Metodi di ricerca/filtraggio dei dati
 
--  `search(self, fieldname, value, start=0, funcname="", compare_function=None)`: Cerca un record con il valore specificato nel campo specificato, a partire dall'indice specificato, per il quale la funzione di confronto specificata Recupera True. Recupera una tupla con indice:int e record:dict
--  `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper per search() con funcname="find". Recupera il primo record (dizionario) trovato oppure None se non viene trovato alcun record che soddisfi i criteri specificati.
--  `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper per search() con funcname="index". Recupera l'indice del primo record trovato, oppure -1 se non viene trovato alcun record che soddisfi i criteri specificati.
--  `filter(self, fieldname, value, compare_function=None)`:  Recupera un elenco di record (dizionari) che soddisfano i criteri specificati.
+- `search(self, fieldname, value, start=0, funcname="", compare_function=None)`: Cerca un record con il valore specificato nel campo specificato, a partire dall'indice specificato, per il quale la funzione di confronto specificata Recupera True. Recupera una tupla con indice:int e record:dict
+- `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper per search() con funcname="find". Recupera il primo record (dizionario) trovato oppure None se non viene trovato alcun record che soddisfi i criteri specificati.
+- `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper per search() con funcname="index". Recupera l'indice del primo record trovato, oppure -1 se non viene trovato alcun record che soddisfi i criteri specificati.
+- `filter(self, fieldname, value, compare_function=None)`:  Recupera un elenco di record (dizionari) che soddisfano i criteri specificati.
 - `execute(self, sql_cmd:str)`: progettato per recuperare i dati in modo personalizzato, con query SQL.
 
 ### Metodi di elencazione dei dati
@@ -163,15 +173,10 @@ Vale la pena notare che tutti questi ultimi cinque metodi restituiscono generato
 ### Proprietà
 
 - 'fields': Recupera l'elenco dei campi da cui vengono assemblati i record del database. Ogni oggetto campo nell'elenco ha un nome, un tipo (come da FieldType Enum) e una lunghezza.
-
 - 'field_names': Recupera un elenco con il nome di ogni campo nel database.
-
 - 'field_types': Recupera un elenco con il tipo di ogni campo nel database.
-
 - 'field_lengths': Recupera un elenco con la lunghezza di ogni campo nel database.
-
 - 'max_field_lengths': restituisce la lunghezza massima del campo specificato (inclusa la lunghezza del nome del campo) nel database. Utile per recuperare righe con larghezza regolata per ogni campo. Utilizza internamente `def max_field_length(self, field)`
-
 - 'tmax_field_lengths': uguale a max_field_lengths, versione thread, in un tentativo non riuscito di accelerare il processo. In ogni caso, funziona.
 
 ## Contributi
@@ -185,5 +190,3 @@ Questo progetto è concesso in licenza con la licenza MIT. Per i dettagli, veder
 ## Contatto
 
 Per qualsiasi domanda o suggerimento, contattare [Domingo E. Savoretti](mailto:esavoretti@gmail.com).
-
-

@@ -2,6 +2,8 @@
   <img src="https://raw.githubusercontent.com/sandy98/pybase3/main/img/pybase3t.png" alt="pybase3 logo">
 </p>
 
+![PyPI - Current Version](https://img.shields.io/pypi/v/pybase3)
+
 # Biblioteca Python para DBase III
 
 Biblioteca de Python diseñada para manipular archivos de bases de datos DBase III. Permite leer, escribir, agregar y actualizar registros en la base de datos.
