@@ -32,9 +32,9 @@ from multiprocessing.pool import ThreadPool
 # from multiprocessing import Lock
 
 try:
-    from pybase3.utils import SmartDict
+    from pybase3.utils import SmartDict, coerce_number
 except ImportError:
-    from utils import SmartDict
+    from utils import SmartDict, coerce_number
 
 
 
@@ -841,7 +841,7 @@ class DbaseFile:
         for i, alias in enumerate(self.field_alias):
             if alias == fieldname:
                 fieldname = self.fields[i].name
-                
+
         if fieldname in self.indexes:
             return self._indexed_search(fieldname, value, start, funcname, compare_function)
         
@@ -1127,7 +1127,7 @@ class DbaseFile:
         records = (self.transform(r, fields) for r in records)
         return Cursor(description, records)
 
-    def execute(self, sql_cmd: str):
+    def execute(self, sql_cmd: str, *args):
         """
         Executes a SQL command on the database.
         """
@@ -1236,12 +1236,10 @@ class SQLType(Enum):
 
 class SQLParser:
 
-    select_re = re.compile(r"^SELECT\s+(?P<selectsrc>.+?)\s?(?P<selend>FROM|;$)", 
-                           re.IGNORECASE)
-    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>where|;$)",
-                            re.IGNORECASE)
-    where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>;$)",
-                            re.IGNORECASE)
+    select_re = re.compile(r"^SELECT\s+(?P<selectsrc>.+?)\s?(?P<selend>FROM|;$)", re.IGNORECASE)
+    insert_re = re.compile(r"^INSERT INTO\s+(?P<insertsrc>.+?)(\s+\((?P<fields>.+)\))?\s+values\s*\((?P<values>.+)\)\s?(?P<insertend>;$)", re.IGNORECASE)
+    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>where|;$)", re.IGNORECASE)
+    where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>;$)", re.IGNORECASE)
     
     @staticmethod
     def parse_where_clause(wheresrc):
@@ -1353,7 +1351,7 @@ class SQLParser:
             self._type = SQLType.SELECT
         elif sqlcmd == 'INSERT':
             self._type = SQLType.INSERT
-            raise NotImplementedError("INSERT not implemented yet")
+            # raise NotImplementedError("INSERT not implemented yet")
         elif sqlcmd == 'UPDATE':
             self._type = SQLType.UPDATE
             raise NotImplementedError("UPDATE not implemented yet")
@@ -1444,6 +1442,17 @@ class SQLParser:
             else:
                 self.field_param = self.operator = self.value_param = None
                 self.compare_function, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
+        elif self.type == 'INSERT':
+            m = self.insert_re.match(self._sql.strip())
+            if m:
+                d = m.groupdict()
+                self._insertsrc = d.get('insertsrc').strip()
+                self.tables = [t.strip() for t in self._insertsrc.split(',')]
+                self._fields = d.get('fields').strip()
+                self._values = d.get('values').strip()
+                self._insertend = d.get('insertend').strip()
+            else:
+                raise ValueError(f"Invalid INSERT clause: '{self._sql}'")
 
     @property
     def parts(self):
@@ -1500,10 +1509,10 @@ class Cursor:
                 break
         return retval
 
-    def execute(self, sql:str):
+    def execute(self, sql:str, *args):
         if not self._connection:
             raise ValueError("No connection, cannot execute SQL command")
-        return self._connection.execute(sql)
+        return self._connection.execute(sql, *args)
     
         # sql_parser = SQLParser(sql)
         # if sql_parser.type != 'SELECT':
@@ -1553,14 +1562,14 @@ class Connection:
     def Cursor(self):
         return Cursor(_connection=self)
     
-    def execute(self, sql:str):
+    def execute(self, sql:str, *args):
         sql_parser = SQLParser(sql)
-        if sql_parser.type != 'SELECT':
-            raise ValueError("Only SELECT commands are supported right now.")
+        if sql_parser.type not in ['SELECT', 'INSERT']:
+            raise ValueError("Only SELECT and INSERT commands are supported right now.")
         for i, table in enumerate(self.tables):
             if table == sql_parser.tables[0]:
                 dbf = DbaseFile(self.filenames[i])
-                cursor = dbf.execute(sql)
+                cursor = dbf.execute(sql, *args)
                 return cursor
         raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
 

@@ -2,7 +2,12 @@
   <img src="https://raw.githubusercontent.com/sandy98/pybase3/main/img/pybase3t.png" alt="pybase3 logo">
 </p>
 
-![PyPI - Current Version](https://img.shields.io/pypi/v/pybase3)
+<!--![PyPI - Current Version](https://img.shields.io/pypi/v/pybase3)-->
+<p>
+  <a href="https://pypi.org/project/pybase3">
+    <img src="https://img.shields.io/pypi/v/pybase3" alt="PyPI - Current Version">
+  </a>
+</p>
 
 # Biblioteca Python para DBase III
 

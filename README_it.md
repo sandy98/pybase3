@@ -2,6 +2,13 @@
   <img src="https://raw.githubusercontent.com/sandy98/pybase3/main/img/pybase3t.png" alt="pybase3 logo">
 </p>
 
+<!--![PyPI - Current Version](https://img.shields.io/pypi/v/pybase3)-->
+<p>
+  <a href="https://pypi.org/project/pybase3">
+    <img src="https://img.shields.io/pypi/v/pybase3" alt="PyPI - Current Version">
+  </a>
+</p>
+
 # Libreria Python DBase III
 
 Libreria Python pensata per manipolare i file di database DBase III. Consente di leggere, scrivere, aggiungere e aggiornare i record nel database.
