@@ -101,6 +101,19 @@ Type 'help' for help.\n
                     print(f"Table '{table}' not found.")
                 break
     
+    def do_commit(self, table):
+        """Usage: commit <tablename>\nCommits changes to the specified table"""
+        print(f"Committing changes to table '{table}':", end='\n')
+        for i, name in enumerate(self.connection.tablenames):
+            if table.lower() == name.lower():
+                seltable = self.get_table(table)
+                if seltable:
+                    seltable.commit()
+                    print(f"Changes committed to '{table}'")
+                else:
+                    print(f"Table '{table}' not found.")
+                break
+
     def do_delete(self, line):
         """Usage: delete from <tablename> where <condition>\nDeletes records from the specified table"""
         line = f"delete {line}{';' if not line.endswith(';') else ''}"
@@ -121,7 +134,7 @@ Type 'help' for help.\n
         print()
         try:
             numrecs = self.connection.execute(line).fetchone()
-            print(f"Total: {numrecs} record(s) after insertion.")
+            print(f"{numrecs} record(s) inserted.")
         except Exception as e:
             print(e)
         finally:

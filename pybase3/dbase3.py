@@ -1436,10 +1436,12 @@ class DbaseFile:
         filteredrecords = self.filter(sql_parser.field_param, 
                                       sql_parser.value_param,
                                       compare_function=sql_parser.compare_function)
+        recordslen = len(filteredrecords)
         records = self.fields_view(fields=selectedfields, records=filteredrecords)
         cursor = Cursor(description=[(i, f.alias, f.name, f.type, f.length, f.decimal) 
                                      for i, f in enumerate(selectedfields)], 
                                      records=records)
+        cursor.rowsaffected = recordslen
         return cursor
 
     def _execute_delete(self, sql_parser: SQLParser, *args):
@@ -1451,8 +1453,10 @@ class DbaseFile:
             record['deleted'] = True
             self.save_record(record.metadata.index, record)
         self.commit()
-        return Cursor(description=[(0, 'records', 'records', 'N', 10, 0)], records=[numdeleted])
-
+        cursor = Cursor(description=[(0, 'records', 'records', 'N', 10, 0)], records=(n for n in [numdeleted]))
+        cursor.rowsaffected = numdeleted
+        return cursor
+    
     def _execute_insert(self, sql_parser: SQLParser, *args):
         # print(f"Inserting {sql_parser._values}")
         values = [coerce_number(v.strip().strip("'")) for v in sql_parser._values.split(",")]
@@ -1466,8 +1470,10 @@ class DbaseFile:
                 raise ValueError(f"Wrong number of fields: expected {len(self.fields)}, got {len(real_values)}") 
             values = real_values               
         self.add_record(*values)
-        return Cursor(description=[(0, 'records', 'records', 'N', 10, 0)], records=(n for n in [self.header.records]))
-
+        cursor = Cursor(description=[(0, 'records', 'records', 'N', 10, 0)], records=(n for n in [1]))
+        cursor.rowsaffected = 1
+        return cursor
+    
     def execute(self, sql_cmd: str, *args):
         """
         Executes a SQL command on the database.
