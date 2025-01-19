@@ -142,8 +142,8 @@ class SQLParser:
     delete_re = re.compile(r"^DELETE\s+(?P<delend>FROM|;$)", re.IGNORECASE)
     insert_re = re.compile(r"^INSERT INTO\s+(?P<insertsrc>.+?)(\s+\((?P<fields>.+)\))?\s+values\s*\((?P<values>.+)\)\s?(?P<insertend>;$)", re.IGNORECASE)
     update_re = re.compile(r"^UPDATE\s+(?P<updatesrc>.+?)\s+SET\s+(?P<updatepairs>.+?)\s?(?P<updateend>WHERE|;$)", re.IGNORECASE)
-    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>WHERE|;$)", re.IGNORECASE)
-    where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>;$)", re.IGNORECASE)
+    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>WHERE|ORDER\s+BY|;$)", re.IGNORECASE)
+    where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>ORDER\s+BY|;$)", re.IGNORECASE)
     orderby_re = re.compile(r"^.+ORDER\s+BY\s+(?P<ordersrc>.+?)(\s+(?P<orderasc>ASC|DESC))?\s*(?P<orderend>;$)", re.IGNORECASE)
     
     @staticmethod
@@ -354,18 +354,47 @@ class SQLParser:
                     self._fromend = d.get('fromend').strip()
                 else:
                     raise ValueError(f"Invalid FROM clause: '{self._sql}'")
-                if self._fromend != ';':
+                self._fromend = self._fromend.upper()
+                if self._fromend == 'WHERE':
                     m = self.where_re.match(self._sql.strip())
                     if m:
                         d = m.groupdict()
                         self._wheresrc = d.get('wheresrc').strip()
-                        self._whereend = d.get('whereend').strip()
+                        self._whereend = d.get('whereend').strip().upper()
+                        if self._whereend.startswith('ORDER'):
+                            m = self.orderby_re.match(self._sql.strip())
+                            if m:
+                                d = m.groupdict()
+                                self._ordersrc = d.get('ordersrc').strip()
+                                self._orderasc = d.get('orderasc').strip() if d.get('orderasc') else 'asc'
+                                self._orderend = d.get('orderend').strip() if d.get('orderend') else ';'
+                            else:
+                                raise ValueError(f"Invalid ORDER BY clause: '{self._sql}'")
                     else:
                         raise ValueError(f"Invalid WHERE clause: '{self._sql}'")   
+                elif self._fromend.startswith('ORDER'):
+                    m = self.orderby_re.match(self._sql.strip())
+                    if m:
+                        d = m.groupdict()
+                        self._ordersrc = d.get('ordersrc').strip()
+                        self._orderasc = d.get('orderasc').strip() if d.get('orderasc') else 'asc'
+                        self._orderend = d.get('orderend').strip() if d.get('orderend') else ';'
+                    else:
+                        raise ValueError(f"Invalid ORDER BY clause: '{self._sql}'")
                 else:
                     self._wheresrc = self._whereend = None
+                    self._ordersrc = self._orderasc = self._orderend = None
             else:
                 self._fromsrc = self._fromend = self._wheresrc = self._whereend = None
+            m = self.orderby_re.match(self._sql.strip())
+            if m:
+                d = m.groupdict()
+                self._ordersrc = d.get('ordersrc').strip()
+                self._orderasc = d.get('orderasc').strip() if d.get('orderasc') else 'asc'
+                self._orderend = d.get('orderend').strip() if d.get('orderend') else ';'
+            else:
+                self._ordersrc = self._orderasc = self._orderend = None
+
         elif self.type == 'INSERT':
             m = self.insert_re.match(self._sql.strip())
             if m:
@@ -407,6 +436,7 @@ class SQLParser:
         else:
             self.field_param = self.operator = self.value_param = None
             self.compare_function, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
+
 
  
     @property
@@ -1459,6 +1489,8 @@ class DbaseFile:
         filteredrecords = self.filter(sql_parser.field_param, 
                                       sql_parser.value_param,
                                       compare_function=sql_parser.compare_function)
+        if sql_parser._ordersrc:
+            filteredrecords = sorted(filteredrecords, key=lambda r: r[sql_parser._ordersrc], reverse=sql_parser._orderasc != 'asc') 
         recordslen = len(filteredrecords)
         records = self.fields_view(fields=selectedfields, records=filteredrecords)
         cursor = Cursor(description=[(i, f.alias, f.name, f.type, f.length, f.decimal) 
