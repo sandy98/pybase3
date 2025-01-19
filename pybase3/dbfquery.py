@@ -89,6 +89,31 @@ Type 'help' for help.\n
                     print(f"Table '{table}' not found.")
                 break
 
+    def do_count(self, table):
+        """Usage: count <tablename>\nCounts the records in the specified table"""
+        print(f"Counting records in table '{table}':", end='\n')
+        for i, name in enumerate(self.connection.tablenames):
+            if table.lower() == name.lower():
+                seltable = self.get_table(table)
+                if seltable:
+                    print(f"Total records: {len(seltable)}")
+                else:
+                    print(f"Table '{table}' not found.")
+                break
+    
+    def do_delete(self, line):
+        """Usage: delete from <tablename> where <condition>\nDeletes records from the specified table"""
+        line = f"delete {line}{';' if not line.endswith(';') else ''}"
+        print(line)
+        print()
+        try:
+            numrecs = self.connection.execute(line).fetchone()
+            print(f"Total: {numrecs} record(s) deleted.")
+        except Exception as e:
+            print(e)
+        finally:
+            print()
+
     def do_insert(self, line):
         """Usage: insert into <tablename> values(<values>)\nInserts a new record in the specified table"""
         line = f"insert {line}{';' if not line.endswith(';') else ''}"

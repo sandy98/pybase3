@@ -139,9 +139,11 @@ class SQLType(Enum):
 class SQLParser:
 
     select_re = re.compile(r"^SELECT\s+(?P<selectsrc>.+?)\s?(?P<selend>FROM|;$)", re.IGNORECASE)
+    delete_re = re.compile(r"^DELETE\s+(?P<delend>FROM|;$)", re.IGNORECASE)
     insert_re = re.compile(r"^INSERT INTO\s+(?P<insertsrc>.+?)(\s+\((?P<fields>.+)\))?\s+values\s*\((?P<values>.+)\)\s?(?P<insertend>;$)", re.IGNORECASE)
     from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>where|;$)", re.IGNORECASE)
     where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>;$)", re.IGNORECASE)
+    orderby_re = re.compile(r"^.+ORDER\s+BY\s+(?P<ordersrc>.+?)(\s+(?P<orderasc>ASC|DESC))?\s*(?P<orderend>;$)", re.IGNORECASE)
     
     @staticmethod
     def parse_where_clause(wheresrc):
@@ -244,6 +246,9 @@ class SQLParser:
         self._fromend = None
         self._wheresrc = None
         self._whereend = None
+        self._values = None
+        self._fields = None
+        self.tables = []
 
         self.parse()
     
@@ -259,7 +264,7 @@ class SQLParser:
             raise NotImplementedError("UPDATE not implemented yet")
         elif sqlcmd == 'DELETE':
             self._type = SQLType.DELETE
-            raise NotImplementedError("DELETE not implemented yet")
+            # raise NotImplementedError("DELETE not implemented yet")
 
         # elif sqlcmd == 'CREATE':
         #     self._type = SQLType.CREATE
@@ -288,7 +293,29 @@ class SQLParser:
         else:
             raise ValueError(f"Invalid SQL command: {sqlcmd}")
 
-        if self.type == 'SELECT':
+        if self.type == 'DELETE':
+            m = self.from_re.match(self._sql.strip())
+            if m:
+                d = m.groupdict()
+                self._fromsrc = d.get('fromsrc').strip()
+                self._fromend = d.get('fromend').strip()
+            else:
+                raise ValueError(f"Invalid FROM clause: '{self._sql}'")
+            if self._fromend != ';':
+                m = self.where_re.match(self._sql.strip())
+                if m:
+                    d = m.groupdict()
+                    self._wheresrc = d.get('wheresrc').strip()
+                    self._whereend = d.get('whereend').strip()
+                else:
+                    raise ValueError(f"Invalid WHERE clause: '{self._sql}'")   
+            else:
+                self._wheresrc = self._whereend = None
+
+            if self._fromsrc:
+                self.tables = self._fromsrc.split(',')
+                self.tables = [table.strip() for table in self.tables]
+        elif self.type == 'SELECT':
             m = self.select_re.match(self._sql.strip())
             if m:
                 d = m.groupdict()
@@ -316,34 +343,6 @@ class SQLParser:
                     self._wheresrc = self._whereend = None
             else:
                 self._fromsrc = self._fromend = self._wheresrc = self._whereend = None
-
-            if self._fromsrc:
-                self.tables = self._fromsrc.split(',')
-                self.tables = [table.strip() for table in self.tables]
-
-            if self._selectsrc:
-                fields = self._selectsrc.split(',')
-                fields = [field.strip() for field in fields]
-                dfields = SmartDict()
-                for i, f in enumerate(fields):
-                    f = f.strip()
-                    alias = re.split(r'\s+AS\s+', f, 0, re.IGNORECASE)
-                    if len(alias) == 2:
-                        # self.fields[i] = SmartDict({alias[0].strip(): alias[1].strip()})
-                        dfields[alias[0].strip()] = alias[1].strip()
-                    else:
-                        # self.fields[i] = SmartDict({alias[0].strip(): alias[0].strip()})
-                        dfields[alias[0].strip()] = alias[0].strip()
-                    if f == '*':
-                        break
-                self.fields = dfields
-
-            if self._wheresrc:
-                self.field_param, self.operator, self.value_param = self.parse_where_clause(self._wheresrc)
-                self.compare_function, self.compare_func_src = self.compile_where_clause(self.field_param, self.operator, self.value_param)
-            else:
-                self.field_param = self.operator = self.value_param = None
-                self.compare_function, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
         elif self.type == 'INSERT':
             m = self.insert_re.match(self._sql.strip())
             if m:
@@ -358,6 +357,35 @@ class SQLParser:
             else:
                 raise ValueError(f"Invalid INSERT clause: '{self._sql}'")
 
+        if self._fromsrc:
+            self.tables = self._fromsrc.split(',')
+            self.tables = [table.strip() for table in self.tables]
+
+        if self._selectsrc:
+            fields = self._selectsrc.split(',')
+            fields = [field.strip() for field in fields]
+            dfields = SmartDict()
+            for i, f in enumerate(fields):
+                f = f.strip()
+                alias = re.split(r'\s+AS\s+', f, 0, re.IGNORECASE)
+                if len(alias) == 2:
+                    # self.fields[i] = SmartDict({alias[0].strip(): alias[1].strip()})
+                    dfields[alias[0].strip()] = alias[1].strip()
+                else:
+                    # self.fields[i] = SmartDict({alias[0].strip(): alias[0].strip()})
+                    dfields[alias[0].strip()] = alias[0].strip()
+                if f == '*':
+                    break
+            self.fields = dfields
+
+        if self._wheresrc:
+            self.field_param, self.operator, self.value_param = self.parse_where_clause(self._wheresrc)
+            self.compare_function, self.compare_func_src = self.compile_where_clause(self.field_param, self.operator, self.value_param)
+        else:
+            self.field_param = self.operator = self.value_param = None
+            self.compare_function, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
+
+ 
     @property
     def parts(self):
         return SmartDict(selectsrc=self._selectsrc, fromsrc=self._fromsrc, 
@@ -776,7 +804,7 @@ class DbaseFile:
                 assert((self.header.header_size + self.datasize) == self.filesize)
             except AssertionError:
                 # raise ValueError(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
-                os.sys.stderr.write(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
+                os.sys.stderr.write(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}\n")
                 os.sys.stderr.flush()
         self._load_mdx()
 
@@ -1414,6 +1442,17 @@ class DbaseFile:
                                      records=records)
         return cursor
 
+    def _execute_delete(self, sql_parser: SQLParser, *args):
+        filteredrecords = self.filter(sql_parser.field_param, 
+                                      sql_parser.value_param,
+                                      compare_function=sql_parser.compare_function)
+        numdeleted = len(filteredrecords)
+        for record in filteredrecords:
+            record['deleted'] = True
+            self.save_record(record.metadata.index, record)
+        self.commit()
+        return Cursor(description=[(0, 'records', 'records', 'N', 10, 0)], records=[numdeleted])
+
     def _execute_insert(self, sql_parser: SQLParser, *args):
         # print(f"Inserting {sql_parser._values}")
         values = [coerce_number(v.strip().strip("'")) for v in sql_parser._values.split(",")]
@@ -1436,13 +1475,15 @@ class DbaseFile:
         # raise NotImplementedError("SQL commands are not supported as yet.")
         sql_parser = SQLParser(sql_cmd)
         sql_type = sql_parser.type
-        if sql_type not in ['SELECT', 'INSERT']:
-            raise ValueError("Only SELECT and INSERT commands are supported right now.")
+        if sql_type not in ['SELECT', 'INSERT', 'DELETE']:
+            raise ValueError("Only SELECT, INSERT and DELETE commands are supported right now.")
         if sql_type == 'SELECT':
             return self._execute_select(sql_parser, *args)
         elif sql_type == 'INSERT':
             return self._execute_insert(sql_parser, *args)
-
+        elif sql_type == 'DELETE':
+            return self._execute_delete(sql_parser, *args)
+        
     def fields_view(self, start=0, stop=None, step=1, fields:List[DbaseField]=None, records=None):
         """
         Returns a generator yielding a record with fields specified in the fields dictionary.
