@@ -141,7 +141,8 @@ class SQLParser:
     select_re = re.compile(r"^SELECT\s+(?P<selectsrc>.+?)\s?(?P<selend>FROM|;$)", re.IGNORECASE)
     delete_re = re.compile(r"^DELETE\s+(?P<delend>FROM|;$)", re.IGNORECASE)
     insert_re = re.compile(r"^INSERT INTO\s+(?P<insertsrc>.+?)(\s+\((?P<fields>.+)\))?\s+values\s*\((?P<values>.+)\)\s?(?P<insertend>;$)", re.IGNORECASE)
-    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>where|;$)", re.IGNORECASE)
+    update_re = re.compile(r"^UPDATE\s+(?P<updatesrc>.+?)\s+SET\s+(?P<updatepairs>.+?)\s?(?P<updateend>WHERE|;$)", re.IGNORECASE)
+    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>WHERE|;$)", re.IGNORECASE)
     where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>;$)", re.IGNORECASE)
     orderby_re = re.compile(r"^.+ORDER\s+BY\s+(?P<ordersrc>.+?)(\s+(?P<orderasc>ASC|DESC))?\s*(?P<orderend>;$)", re.IGNORECASE)
     
@@ -261,7 +262,7 @@ class SQLParser:
             # raise NotImplementedError("INSERT not implemented yet")
         elif sqlcmd == 'UPDATE':
             self._type = SQLType.UPDATE
-            raise NotImplementedError("UPDATE not implemented yet")
+          # raise NotImplementedError("UPDATE not implemented yet")
         elif sqlcmd == 'DELETE':
             self._type = SQLType.DELETE
             # raise NotImplementedError("DELETE not implemented yet")
@@ -293,7 +294,29 @@ class SQLParser:
         else:
             raise ValueError(f"Invalid SQL command: {sqlcmd}")
 
-        if self.type == 'DELETE':
+        if self.type == 'UPDATE':
+            m = self.update_re.match(self._sql.strip())
+            if m:
+                d = m.groupdict()
+                self._updatesrc = d.get('updatesrc').strip()
+                self._updatepairs = d.get('updatepairs').strip()
+                self._updateend = d.get('updateend').strip()
+            else:
+                raise ValueError(f"Invalid UPDATE clause: '{self._sql}'")
+            if self._updateend != ';':
+                m = self.where_re.match(self._sql.strip())
+                if m:
+                    d = m.groupdict()
+                    self._wheresrc = d.get('wheresrc').strip()
+                    self._whereend = d.get('whereend').strip()
+                else:
+                    raise ValueError(f"Invalid WHERE clause: '{self._sql}'")   
+            else:
+                self._wheresrc = self._whereend = None
+            if self._updatesrc:
+                self.tables = self._updatesrc.split(',')
+                self.tables = [table.strip() for table in self.tables]
+        elif self.type == 'DELETE':
             m = self.from_re.match(self._sql.strip())
             if m:
                 d = m.groupdict()
@@ -1444,6 +1467,26 @@ class DbaseFile:
         cursor.rowsaffected = recordslen
         return cursor
 
+    def _execute_update(self, sql_parser: SQLParser, *args):
+        filteredrecords = self.filter(sql_parser.field_param, 
+                                      sql_parser.value_param,
+                                      compare_function=sql_parser.compare_function)
+        numupdated = len(filteredrecords)
+        pairs = re.split(r"\s*,\s*", sql_parser._updatepairs)
+        dict_update = {}
+        for pair in pairs:
+            key, value = re.split(r"\s*=\s*", pair)
+            dict_update[key] = value
+
+        for record in filteredrecords:
+            for k, v in dict_update.items():
+                record[k] = coerce_number(v.strip().strip("'"))
+            self.save_record(record.metadata.index, record)
+        self.commit()
+        cursor = Cursor(description=[(0, 'records', 'records', 'N', 10, 0)], records=(n for n in [numupdated]))
+        cursor.rowsaffected = numupdated
+        return cursor
+    
     def _execute_delete(self, sql_parser: SQLParser, *args):
         filteredrecords = self.filter(sql_parser.field_param, 
                                       sql_parser.value_param,
@@ -1481,14 +1524,16 @@ class DbaseFile:
         # raise NotImplementedError("SQL commands are not supported as yet.")
         sql_parser = SQLParser(sql_cmd)
         sql_type = sql_parser.type
-        if sql_type not in ['SELECT', 'INSERT', 'DELETE']:
-            raise ValueError("Only SELECT, INSERT and DELETE commands are supported right now.")
+        if sql_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
+            raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
         if sql_type == 'SELECT':
             return self._execute_select(sql_parser, *args)
         elif sql_type == 'INSERT':
             return self._execute_insert(sql_parser, *args)
         elif sql_type == 'DELETE':
             return self._execute_delete(sql_parser, *args)
+        elif sql_type == 'UPDATE':
+            return self._execute_update(sql_parser, *args)
         
     def fields_view(self, start=0, stop=None, step=1, fields:List[DbaseField]=None, records=None):
         """
@@ -1639,8 +1684,8 @@ class Connection:
     
     def execute(self, sql:str, *args):
         sql_parser = SQLParser(sql)
-        if sql_parser.type not in ['SELECT', 'INSERT', 'DELETE']:
-            raise ValueError("Only SELECT, INSERT and DELETE commands are supported right now.")
+        if sql_parser.type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
+            raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
         for i, table in enumerate(self.tables):
             if table == sql_parser.tables[0]:
                 dbf = DbaseFile(self.filenames[i])
@@ -1769,7 +1814,8 @@ if __name__ == '__main__':
     print(f"There are {len(rows)} rows.")
     for row in rows:
         print(row.nombre)
-
+    dbf.execute("update teams set titles=200 where id=14;")
+    print(dbf[12])
     os.sys.exit(0)
 #############################################################
     teams = DbaseFile('db/teams.dbf')

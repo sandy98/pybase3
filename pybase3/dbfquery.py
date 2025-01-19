@@ -127,6 +127,19 @@ Type 'help' for help.\n
         finally:
             print()
 
+    def do_update(self, line):
+        """Usage: update <tablename> set <field>=<value> where <condition>\nUpdates records in the specified table"""
+        line = f"update {line}{';' if not line.endswith(';') else ''}"
+        print(line)
+        print()
+        try:
+            numrecs = self.connection.execute(line).fetchone()
+            print(f"Total: {numrecs} record(s) updated.")
+        except Exception as e:
+            print(e)
+        finally:
+            print()
+
     def do_insert(self, line):
         """Usage: insert into <tablename> values(<values>)\nInserts a new record in the specified table"""
         line = f"insert {line}{';' if not line.endswith(';') else ''}"
