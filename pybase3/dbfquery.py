@@ -89,6 +89,19 @@ Type 'help' for help.\n
                     print(f"Table '{table}' not found.")
                 break
 
+    def do_insert(self, line):
+        """Usage: insert into <tablename> values(<values>)\nInserts a new record in the specified table"""
+        line = f"insert {line}{';' if not line.endswith(';') else ''}"
+        print(line)
+        print()
+        try:
+            numrecs = self.connection.execute(line).fetchone()
+            print(f"Total: {numrecs} record(s) after insertion.")
+        except Exception as e:
+            print(e)
+        finally:
+            print()
+            
     def do_select(self, line):
         """Executes an SQL 'select' command"""
         line = f"select {line}{';' if not line.endswith(';') else ''}"
@@ -130,11 +143,14 @@ Type 'help' for help.\n
     
 def main():
     parser = ArgumentParser(description="A simple SQL shell for dBase III+ files.")
-    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {version}")
     argslen = len(sys.argv)
+    # if argslen > 1:
+    #     parser.add_argument("dirname", nargs=1, default=".", help="The dBase III+ directory to open.")
+
     if argslen > 1:
-        parser.add_argument("dirname", nargs=1, default=[os.getcwd()], help="The dBase III+ directory to open.")
-    
+        parser.add_argument("dirname", nargs=1, default=".", help="The dBase III+ directory to open.")
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {version}")
+
     args = parser.parse_args()
 
     if argslen > 1:
