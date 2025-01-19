@@ -1633,8 +1633,8 @@ class Connection:
     
     def execute(self, sql:str, *args):
         sql_parser = SQLParser(sql)
-        if sql_parser.type not in ['SELECT', 'INSERT']:
-            raise ValueError("Only SELECT and INSERT commands are supported right now.")
+        if sql_parser.type not in ['SELECT', 'INSERT', 'DELETE']:
+            raise ValueError("Only SELECT, INSERT and DELETE commands are supported right now.")
         for i, table in enumerate(self.tables):
             if table == sql_parser.tables[0]:
                 dbf = DbaseFile(self.filenames[i])
