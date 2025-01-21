@@ -1,6 +1,6 @@
 #-*- coding: utf_8 -*-
 
-__version__ = "1.97.11"
+__version__ = "1.97.12"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -1495,7 +1495,7 @@ class DbaseFile:
             selectedfields.append(f)
         filteredrecords = self.filter(sql_parser.field_param, 
                                       sql_parser.value_param,
-                                      compare_function=sql_parser.compare_function)
+                                      compare_function=sql_parser.compare_functiontion)
         if sql_parser._ordersrc:
             filteredrecords = sorted(filteredrecords, key=lambda r: r[sql_parser._ordersrc], reverse=sql_parser._orderasc != 'asc') 
         recordslen = len(filteredrecords)
@@ -1509,7 +1509,7 @@ class DbaseFile:
     def _execute_update(self, sql_parser: SQLParser, *args):
         filteredrecords = self.filter(sql_parser.field_param, 
                                       sql_parser.value_param,
-                                      compare_function=sql_parser.compare_function)
+                                      compare_function=sql_parser.compare_functiontion)
         numupdated = len(filteredrecords)
         pairs = re.split(r"\s*,\s*", sql_parser._updatepairs)
         dict_update = {}
@@ -1529,7 +1529,7 @@ class DbaseFile:
     def _execute_delete(self, sql_parser: SQLParser, *args):
         filteredrecords = self.filter(sql_parser.field_param, 
                                       sql_parser.value_param,
-                                      compare_function=sql_parser.compare_function)
+                                      compare_function=sql_parser.compare_functiontion)
         numdeleted = len(filteredrecords)
         for record in filteredrecords:
             record['deleted'] = True

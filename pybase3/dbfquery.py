@@ -7,15 +7,15 @@ from argparse import ArgumentParser
 
 try:    
     from .__init__ import __version__ as version
-    from .dbase3 import DbaseFile, Connection
-    from .dbase3 import make_raw_lines, make_list_lines, make_csv_lines
-    from .dbase3 import make_table_lines, make_pretty_table_lines
+    from . import DbaseFile, Connection
+    from . import make_raw_lines, make_list_lines, make_csv_lines
+    from . import make_table_lines, make_pretty_table_lines
     # print("Imported from package")
 except ImportError:
     from __init__ import __version__ as version
-    from dbase3 import DbaseFile, Connection
-    from dbase3 import make_raw_lines, make_list_lines, make_csv_lines
-    from dbase3 import make_table_lines, make_pretty_table_lines
+    from pybase3 import DbaseFile, Connection
+    from pybase3 import make_raw_lines, make_list_lines, make_csv_lines
+    from pybase3 import make_table_lines, make_pretty_table_lines
     # print("Imported from local")
 
 display_function = make_pretty_table_lines

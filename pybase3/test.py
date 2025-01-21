@@ -1,6 +1,6 @@
 #-*- coding: utf_8 -*-
 
-# This is a simple test script for the dbase3 module.
+# This is a simple test script for the pybase3 module.
 # It creates a test database, updates some records, and deletes one.
 # It then writes the changes to the database file.
 # The script can be run with the -d option to show intermediate results.
@@ -9,9 +9,9 @@
 
 import os, sys, subprocess
 try:
-    from dbase3 import DbaseFile, FieldType, SQLParser
+    from pybase3 import DbaseFile, FieldType, SQLParser
 except ImportError:
-    from pybase3.dbase3 import DbaseFile, FieldType, SQLParser
+    from pybase3 import DbaseFile, FieldType, SQLParser
 
 def test_sql():
     subprocess.run(['clear'])
@@ -25,7 +25,7 @@ def test_sql():
         print(csv)
     print(f"\nSQL command: {sqlstr}\n-------------------")
     oldies = kids.filter(sql_parser.field_param, sql_parser.value_param, 
-                         compare_function=sql_parser.compare_func)
+                         compare_function=sql_parser.compare_function)
     noldies = kids.fields_view(fields=sql_parser.fields, records=oldies)
     print("\nResult of SQL query\n-------------------")
     for record in noldies:
@@ -37,7 +37,7 @@ def test_sql():
     print("SQL parser parts:", sql_parser.parts)
     print(f"\nSQL command: {sqlstr}\n-------------------")
     oldies = kids.filter(sql_parser.field_param, sql_parser.value_param, 
-                         compare_function=sql_parser.compare_func)
+                         compare_function=sql_parser.compare_function)
     noldies = kids.fields_view(fields=sql_parser.fields, records=oldies)
     print("\nResult of SQL query\n-------------------")
     for record in noldies:

@@ -49,7 +49,7 @@ pip install pybase3
 ### Clase principal
 
 ```python
-from pybase3.dbase3 import DBaseFile, FieldType
+from pybase3 import DBaseFile, FieldType
 test = DbaseFile.create('db/test.dbf',
                     [('name', FieldType.CHARACTER.value, 50, 0),
                         ('age', FieldType.NUMERIC.value, 3, 0)])
@@ -89,7 +89,7 @@ o, mejor aún, si pybase3 se instala usando pip, instalará dbftest como un scri
 dbftest [-r|-d]
 ```
 
-Este es un script de prueba simple para el módulo dbase3.
+Este es un script de prueba simple para el módulo pybase3.
 Crea una base de datos de prueba (`db/test.dbf`), actualiza algunos registros y elimina uno.
 Luego escribe los cambios en el archivo de base de datos.
 El script se puede ejecutar con la opción -d para mostrar resultados intermedios o con la opción -r para borrar un test.dbf existente.

@@ -16,9 +16,9 @@ from functools import reduce
 from itertools import islice
 
 try:
-    from pybase3.dbase3 import DbaseFile
+    from pybase3 import DbaseFile
 except ImportError:
-    from dbase3 import DbaseFile
+    from pybase3 import DbaseFile
 
 def show(stdscr, title, subtitle, textlinesgen, length):
     """
