@@ -1,8 +1,8 @@
 #-*- coding: utf_8 -*-
 # This file is the main entry point for the pybase3 package.
+# It provides a command line interface to view the DBF files in the current directory.
 
-#print("Coming soon...")
-
+# Import the necessary modules.
 import os, sys, subprocess
 from argparse import ArgumentParser
 try:
