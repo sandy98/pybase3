@@ -16,9 +16,12 @@ from functools import reduce
 from itertools import islice
 
 try:
-    from pybase3 import DbaseFile
+    from __init__ import __version__ as version
+    from __init__ import DbaseFile
 except ImportError:
+    from pybase3 import __version__ as version
     from pybase3 import DbaseFile
+
 
 def show(stdscr, title, subtitle, textlinesgen, length):
     """
@@ -136,7 +139,11 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python dbfview.py <filename.dbf>")
         sys.exit(1)
-    filename = sys.argv[1]
+    argument = sys.argv[1]
+    if argument in ("-v", "--version"):
+        print(f"dbfview version {version}")
+        sys.exit(0)
+    filename = argument
     if not os.path.exists(filename):
         print(f"File {filename} not found.")
         sys.exit(1)

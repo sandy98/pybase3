@@ -1,13 +1,4 @@
 #-*- coding: utf_8 -*-
-
-__version__ = "1.97.12"
-__author__ = "Domingo fE. Savoretti"
-__email__ = "esavoretti@gmail.com"
-__license__ = "MIT"
-__url__ = "https://github.com/sandy98/pybase3"
-__description__ = "A simple library to read and write dbase III files."
-
-
 """
 pybase3
 
@@ -27,10 +18,19 @@ Classes:
 
 # Title: dBase III File Reader and Writer
 
-import struct, os, pickle, sqlite3, re, subprocess
+# Description:
+__version__ = "1.98.01"
+__author__ = "Domingo fE. Savoretti"
+__email__ = "esavoretti@gmail.com"
+__license__ = "MIT"
+__url__ = "https://github.com/sandy98/pybase3"
+__description__ = "A simple library to read and write dbase III files."
+
+# Import the necessary modules.
+import struct, os, pickle, sqlite3, re, subprocess, shlex
 # from mmap import mmap as memmap, ACCESS_WRITE
 from enum import Enum
-from typing import List, Tuple, Generator, AnyStr, Callable
+from typing import List, Tuple, Generator, AnyStr, Any, Callable
 from dataclasses import dataclass, field #, fields, field, is_dataclass
 from datetime import datetime
 from threading import Thread, Lock
@@ -39,11 +39,13 @@ from multiprocessing.pool import ThreadPool
 # from multiprocessing import Lock
 
 try:
+    # Import from the package
     from pybase3.utils import SmartDict, coerce_number
+    from pybase3.sqlparser import SQLParser
 except ImportError:
+    # Import from the local module
     from utils import SmartDict, coerce_number
-
-
+    from sqlparser import SQLParser
 
 to_bytes = lambda x: x.encode('latin1') if type(x) == str else x
 to_str = lambda x: x.decode('latin1') if type(x) == bytes else x
@@ -116,348 +118,6 @@ class BoxType(Enum):
     
     def __str__(self):
         return self.value
-
-
-class SQLType(Enum):
-    SELECT = 1
-    INSERT = 2
-    UPDATE = 3
-    DELETE = 4
-    CREATE = 5
-    DROP = 6
-    ALTER = 7
-    COMMIT = 8
-    ROLLBACK = 9
-    BEGIN = 10
-    END = 11
-    SAVEPOINT = 12
-    RELEASE = 13
-    ROLLBACK_TO = 14
-    CREATE_INDEX = 15
-    DROP_INDEX = 16
-
-    def __repr__(self):
-        return self.name
-    
-    def __str__(self):
-        return self.name
-
-
-class SQLParser:
-
-    select_re = re.compile(r"^SELECT\s+(?P<selectsrc>.+?)\s?(?P<selend>FROM|;$)", re.IGNORECASE)
-    delete_re = re.compile(r"^DELETE\s+(?P<delend>FROM|;$)", re.IGNORECASE)
-    insert_re = re.compile(r"^INSERT INTO\s+(?P<insertsrc>.+?)(\s+\((?P<fields>.+)\))?\s+values\s*\((?P<values>.+)\)\s?(?P<insertend>;$)", re.IGNORECASE)
-    update_re = re.compile(r"^UPDATE\s+(?P<updatesrc>.+?)\s+SET\s+(?P<updatepairs>.+?)\s?(?P<updateend>WHERE|;$)", re.IGNORECASE)
-    from_re = re.compile(r"^.+FROM\s+(?P<fromsrc>.+?)\s?(?P<fromend>WHERE|ORDER\s+BY|;$)", re.IGNORECASE)
-    where_re = re.compile(r"^.+WHERE\s+(?P<wheresrc>.+?)\s?(?P<whereend>ORDER\s+BY|;$)", re.IGNORECASE)
-    orderby_re = re.compile(r"^.+ORDER\s+BY\s+(?P<ordersrc>.+?)(\s+(?P<orderasc>ASC|DESC))?\s*(?P<orderend>;$)", re.IGNORECASE)
-    
-    @staticmethod
-    def parse_where_clause(wheresrc):
-        # Regular expression to extract the components of the WHERE clause
-        match = re.match(r"(\w+)\s*(=|<=|>=|<|>|!=|LIKE)\s*'?([^']*)'?", wheresrc, re.IGNORECASE)
-        if not match:
-            raise ValueError("Invalid WHERE clause format")
-        lhs, operator, rhs = match.groups()
-        if lhs.replace('.', '').isdigit():
-            if '.' in lhs:
-                lhs = float(lhs)
-            else:
-                lhs = int(lhs)
-        if rhs.replace('.', '').isdigit():
-            if '.' in rhs:
-                rhs = float(rhs)
-            else:
-                rhs = int(rhs)
-        return lhs, operator, rhs
-
-    @staticmethod
-    def compile_where_clause(lhs, operator, rhs):
-        # Map SQL operators to Python equivalents
-        operator_map = {
-            "=": "==",
-            "!=": "!=",
-            "<": "<",
-            ">": ">",
-            "<=": "<=",
-            ">=": ">="
-        }
-
-        # Convert SQL condition to Python code
-        if operator in operator_map:
-            if isinstance(rhs, str):
-                # python_condition = f"record['{lhs}'] {operator_map[operator]} '{rhs}'"
-                python_condition = f"f {operator_map[operator]} '{rhs}'"
-            else:
-                # python_condition = f"record['{lhs}'] {operator_map[operator]} {rhs}"
-                python_condition = f"f {operator_map[operator]} {rhs}"
-        elif operator.upper() == "LIKE":
-            # For LIKE, use Python's `in` for simplicity
-            # python_condition = f"'{rhs}' in f"
-            pat = "^" + rhs.replace("%", r"[\w\s\.]+") + "$"
-            python_condition = f"re.match('{pat}', f, re.IGNORECASE)"
-        else:
-            raise ValueError(f"Unsupported operator: {operator}")
-
-        # Create a lambda function for the condition
-        # lambdasrc = f"lambda record: {python_condition}"
-        lambdasrc = f"lambda f, v: {python_condition}"
-        return eval(lambdasrc), lambdasrc
-
-    @staticmethod
-    def words(sql:str):
-        """
-        Returns a list of words in the SQL command.
-        """
-        is_start_string = lambda str: str[0] in ('"', "'")
-        is_end_string = lambda str: str[-1] in ('"', "'")
-        is_string = lambda str: is_start_string(str) and is_end_string(str)
-
-        primary = re.split(r'\s+', sql)
-        startstr = None
-        final = []
-        for word in primary:
-            if not startstr:
-                if is_string(word):
-                    final.append(word)
-                elif is_start_string(word) and not is_end_string(word):
-                    startstr = word
-                    continue
-                else:
-                    final.append(word)
-            else:
-                if is_string(word):
-                    startstr += " " + word.strip('\'"')
-                if is_end_string(word) and not is_start_string(word):
-                    final.append(startstr + " " + word)
-                    startstr = None
-                else:
-                    startstr += " " + word
-        return final
-    
-    def __init__(self, sqlstr:str):
-        self._sql = sqlstr
-        self._type:SQLType = None
-
-        self.fields:List[DbaseField] = None
-        self.tables:List[AnyStr] = None
-        self.compare_func_src:str = None
-        self.function:Callable = None
-        self.field_param = None
-        self.value_param = None
-        self.operator = None
-        
-        self._selectsrc = None
-        self._selend = None
-        self._fromsrc = None
-        self._fromend = None
-        self._wheresrc = None
-        self._whereend = None
-        self._values = None
-        self._fields = None
-        self.tables = []
-
-        self.parse()
-    
-    def parse(self):
-        sqlcmd = self.words(self._sql.strip())[0].upper()
-        if sqlcmd == 'SELECT':
-            self._type = SQLType.SELECT
-        elif sqlcmd == 'INSERT':
-            self._type = SQLType.INSERT
-            # raise NotImplementedError("INSERT not implemented yet")
-        elif sqlcmd == 'UPDATE':
-            self._type = SQLType.UPDATE
-          # raise NotImplementedError("UPDATE not implemented yet")
-        elif sqlcmd == 'DELETE':
-            self._type = SQLType.DELETE
-            # raise NotImplementedError("DELETE not implemented yet")
-
-        # elif sqlcmd == 'CREATE':
-        #     self._type = SQLType.CREATE
-        # elif sqlcmd == 'DROP':
-        #     self._type = SQLType.DROP
-        # elif sqlcmd == 'ALTER':
-        #     self._type = SQLType.ALTER
-        # elif sqlcmd == 'COMMIT':
-        #     self._type = SQLType.COMMIT
-        # elif sqlcmd == 'ROLLBACK':
-        #     self._type = SQLType.ROLLBACK
-        # elif sqlcmd == 'BEGIN':
-        #     self._type = SQLType.BEGIN
-        # elif sqlcmd == 'END':
-        #     self._type = SQLType.END
-        # elif sqlcmd == 'SAVEPOINT':
-        #     self._type = SQLType.SAVEPOINT
-        # elif sqlcmd == 'RELEASE':
-        #     self._type = SQLType.RELEASE
-        # elif sqlcmd == 'ROLLBACK TO':
-        #     self._type = SQLType.ROLLBACK_TO
-        # elif sqlcmd == 'CREATE INDEX':
-        #     self._type = SQLType.CREATE_INDEX
-        # elif sqlcmd == 'DROP INDEX':
-        #     self._type = SQLType.DROP_INDEX
-        else:
-            raise ValueError(f"Invalid SQL command: {sqlcmd}")
-
-        if self.type == 'UPDATE':
-            m = self.update_re.match(self._sql.strip())
-            if m:
-                d = m.groupdict()
-                self._updatesrc = d.get('updatesrc').strip()
-                self._updatepairs = d.get('updatepairs').strip()
-                self._updateend = d.get('updateend').strip()
-            else:
-                raise ValueError(f"Invalid UPDATE clause: '{self._sql}'")
-            if self._updateend != ';':
-                m = self.where_re.match(self._sql.strip())
-                if m:
-                    d = m.groupdict()
-                    self._wheresrc = d.get('wheresrc').strip()
-                    self._whereend = d.get('whereend').strip()
-                else:
-                    raise ValueError(f"Invalid WHERE clause: '{self._sql}'")   
-            else:
-                self._wheresrc = self._whereend = None
-            if self._updatesrc:
-                self.tables = self._updatesrc.split(',')
-                self.tables = [table.strip() for table in self.tables]
-        elif self.type == 'DELETE':
-            m = self.from_re.match(self._sql.strip())
-            if m:
-                d = m.groupdict()
-                self._fromsrc = d.get('fromsrc').strip()
-                self._fromend = d.get('fromend').strip()
-            else:
-                raise ValueError(f"Invalid FROM clause: '{self._sql}'")
-            if self._fromend != ';':
-                m = self.where_re.match(self._sql.strip())
-                if m:
-                    d = m.groupdict()
-                    self._wheresrc = d.get('wheresrc').strip()
-                    self._whereend = d.get('whereend').strip()
-                else:
-                    raise ValueError(f"Invalid WHERE clause: '{self._sql}'")   
-            else:
-                self._wheresrc = self._whereend = None
-
-            if self._fromsrc:
-                self.tables = self._fromsrc.split(',')
-                self.tables = [table.strip() for table in self.tables]
-        elif self.type == 'SELECT':
-            m = self.select_re.match(self._sql.strip())
-            if m:
-                d = m.groupdict()
-                self._selectsrc = d.get('selectsrc').strip()
-                self._selend = d.get('selend').strip()
-            else:
-                raise ValueError(f"Invalid SELECT clause: '{self._sql}'")
-            if self._selend != ';':
-                m = self.from_re.match(self._sql.strip())
-                if m:
-                    d = m.groupdict()
-                    self._fromsrc = d.get('fromsrc').strip()
-                    self._fromend = d.get('fromend').strip()
-                else:
-                    raise ValueError(f"Invalid FROM clause: '{self._sql}'")
-                self._fromend = self._fromend.upper()
-                if self._fromend == 'WHERE':
-                    m = self.where_re.match(self._sql.strip())
-                    if m:
-                        d = m.groupdict()
-                        self._wheresrc = d.get('wheresrc').strip()
-                        self._whereend = d.get('whereend').strip().upper()
-                        if self._whereend.startswith('ORDER'):
-                            m = self.orderby_re.match(self._sql.strip())
-                            if m:
-                                d = m.groupdict()
-                                self._ordersrc = d.get('ordersrc').strip()
-                                self._orderasc = d.get('orderasc').strip() if d.get('orderasc') else 'asc'
-                                self._orderend = d.get('orderend').strip() if d.get('orderend') else ';'
-                            else:
-                                raise ValueError(f"Invalid ORDER BY clause: '{self._sql}'")
-                    else:
-                        raise ValueError(f"Invalid WHERE clause: '{self._sql}'")   
-                elif self._fromend.startswith('ORDER'):
-                    m = self.orderby_re.match(self._sql.strip())
-                    if m:
-                        d = m.groupdict()
-                        self._ordersrc = d.get('ordersrc').strip()
-                        self._orderasc = d.get('orderasc').strip() if d.get('orderasc') else 'asc'
-                        self._orderend = d.get('orderend').strip() if d.get('orderend') else ';'
-                    else:
-                        raise ValueError(f"Invalid ORDER BY clause: '{self._sql}'")
-                else:
-                    self._wheresrc = self._whereend = None
-                    self._ordersrc = self._orderasc = self._orderend = None
-            else:
-                self._fromsrc = self._fromend = self._wheresrc = self._whereend = None
-            m = self.orderby_re.match(self._sql.strip())
-            if m:
-                d = m.groupdict()
-                self._ordersrc = d.get('ordersrc').strip()
-                self._orderasc = d.get('orderasc').strip() if d.get('orderasc') else 'asc'
-                self._orderend = d.get('orderend').strip() if d.get('orderend') else ';'
-            else:
-                self._ordersrc = self._orderasc = self._orderend = None
-
-        elif self.type == 'INSERT':
-            m = self.insert_re.match(self._sql.strip())
-            if m:
-                d = m.groupdict()
-                self._insertsrc = d.get('insertsrc').strip()
-                self.tables = [t.strip() for t in self._insertsrc.split(',')]
-                self._fields = d.get('fields').strip() if d.get('fields') else None
-                self._values = d.get('values').strip() if d.get('values') else None
-                if not self._values:
-                    raise ValueError(f"Invalid INSERT clause: '{self._sql}'")
-                self._insertend = d.get('insertend').strip() if d.get('insertend') else ';'
-            else:
-                raise ValueError(f"Invalid INSERT clause: '{self._sql}'")
-
-        if self._fromsrc:
-            self.tables = self._fromsrc.split(',')
-            self.tables = [table.strip() for table in self.tables]
-
-        if self._selectsrc:
-            fields = self._selectsrc.split(',')
-            fields = [field.strip() for field in fields]
-            dfields = SmartDict()
-            for i, f in enumerate(fields):
-                f = f.strip()
-                alias = re.split(r'\s+AS\s+', f, 0, re.IGNORECASE)
-                if len(alias) == 2:
-                    # self.fields[i] = SmartDict({alias[0].strip(): alias[1].strip()})
-                    dfields[alias[0].strip()] = alias[1].strip()
-                else:
-                    # self.fields[i] = SmartDict({alias[0].strip(): alias[0].strip()})
-                    dfields[alias[0].strip()] = alias[0].strip()
-                if f == '*':
-                    break
-            self.fields = dfields
-
-        if self._wheresrc:
-            self.field_param, self.operator, self.value_param = self.parse_where_clause(self._wheresrc)
-            self.compare_function, self.compare_func_src = self.compile_where_clause(self.field_param, self.operator, self.value_param)
-        else:
-            self.field_param = self.operator = self.value_param = None
-            self.compare_function, self.compare_func_src = lambda f, v: True, "lambda f, v: True"
-
-
- 
-    @property
-    def parts(self):
-        return SmartDict(selectsrc=self._selectsrc, fromsrc=self._fromsrc, 
-                    wheresrc=self._wheresrc)
-    
-    @property
-    def type(self) -> str:
-        return self._type.name
-    
-    @property
-    def sql(self) -> str:
-        return self._sql
 
 
 @dataclass
@@ -1035,6 +695,11 @@ class DbaseFile:
         self.update_mdx() 
         return True, self.header.records  
 
+    def pack(self, filename=None):
+        """Same as commit(). Included for compatibility with long lost dBase past."""
+
+        return self.commit(filename)
+    
     # def add_field(self, name, type, length, decimal=0):
     #     if len(self.records) > 0:
     #         raise ValueError("Cannot add field after records")
@@ -1479,25 +1144,78 @@ class DbaseFile:
         records = (self.transform(r, fields) for r in records)
         return Cursor(description, records)
 
-    def _execute_select(self, sql_parser: SQLParser, *args):
+    def parse_conditions(self, wherestr: str) -> List[Tuple[str, Any, Callable]]:
+        if not wherestr:
+            return [(self.field_names[0], 0, lambda f, v: True)]
+
+        operator_map = {
+            "=": "==",
+            "!=": "!=",
+            "<": "<",
+            ">": ">",
+            "<=": "<=",
+            ">=": ">="
+        }
+        conditions = re.split(r'\s+(AND|OR)\s+', wherestr, 0, re.IGNORECASE)
+        # Just for now will only parse first condition
+        condition = conditions[0]
+        match = re.match(r"(\w+)\s*(=|<=|>=|<|>|!=|LIKE)\s*'?([^']*)'?", condition, 
+                         re.IGNORECASE)
+        if not match:
+            raise ValueError("Invalid WHERE clause format")
+        lhs, operator, rhs = match.groups()
+        if operator == 'LIKE' or operator == 'like':
+            if rhs[0] == '%' and rhs[-1] == '%':
+                operator = 'in'
+                rhs = rhs[1:-1]
+                lhs, rhs = rhs, lhs
+            elif rhs[0] == '%':
+                operator = 'endswith'
+                rhs = rhs[1:]
+            elif rhs[-1] == '%':
+                operator = 'startswith'
+                rhs = rhs[:-1]
+            else:
+                operator = 'in'
+                lhs, rhs = rhs, lhs
+        else:
+            if operator not in operator_map:
+                raise ValueError(f"Invalid operator {operator}")
+            operator = operator_map[operator]
+
+        if rhs.isdigit():
+            rhs = coerce_number(rhs)
+        lambdasrc = f"lambda f, v: f {operator} v"
+        searchfunc = eval(lambdasrc)
+        return [(lhs, rhs, searchfunc)]
+
+    def _execute_select(self, sql_parser: SQLParser, args=[]):
         fieldobjs = {}
-        for field in sql_parser.fields:
-            if field == '*':
+        parsed = sql_parser.parsed
+
+        columns = parsed['columns']
+        for field in columns:
+            if field['column'] == '*':
                 fieldobjs = {**fieldobjs, **{name: name for name in self.field_names}}
                 break
-            if field not in self.field_names:
-                raise ValueError(f"Field {field} not found")
-            fieldobjs = {**fieldobjs, **{field: sql_parser.fields[field]}}
+            if field['column'] not in self.field_names:
+                raise ValueError(f"Field {field['column']} not found")
+            fieldobjs = {**fieldobjs, **{field['column']: field['alias']}}
         selectedfields = []
         for field in fieldobjs:
             f = self.get_field(field)
             f.alias = fieldobjs[field]
             selectedfields.append(f)
-        filteredrecords = self.filter(sql_parser.field_param, 
-                                      sql_parser.value_param,
-                                      compare_function=sql_parser.compare_functiontion)
-        if sql_parser._ordersrc:
-            filteredrecords = sorted(filteredrecords, key=lambda r: r[sql_parser._ordersrc], reverse=sql_parser._orderasc != 'asc') 
+        
+        field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
+        filteredrecords = self.filter(field_param, value_param, 
+                                      compare_function=compare_function)
+        if parsed.get('order'):
+            orderdata = shlex.split(parsed['order'])
+            ordersrc = orderdata[0]
+            reverse = orderdata[-1].lower() == 'desc'
+            filteredrecords = sorted(filteredrecords, key=lambda r: r[ordersrc], reverse=reverse)
+
         recordslen = len(filteredrecords)
         records = self.fields_view(fields=selectedfields, records=filteredrecords)
         cursor = Cursor(description=[(i, f.alias, f.name, f.type, f.length, f.decimal) 
@@ -1506,12 +1224,14 @@ class DbaseFile:
         cursor.rowsaffected = recordslen
         return cursor
 
-    def _execute_update(self, sql_parser: SQLParser, *args):
-        filteredrecords = self.filter(sql_parser.field_param, 
-                                      sql_parser.value_param,
-                                      compare_function=sql_parser.compare_functiontion)
+    def _execute_update(self, sql_parser: SQLParser, args=[]):
+        parsed = sql_parser.parsed
+        field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
+        filteredrecords = self.filter(field_param, value_param, compare_function=compare_function)
+
         numupdated = len(filteredrecords)
-        pairs = re.split(r"\s*,\s*", sql_parser._updatepairs)
+        # pairs = [re.split(r"\s*,\s*", pair) for pair in parsed['updates']]
+        pairs = parsed['updates']
         dict_update = {}
         for pair in pairs:
             key, value = re.split(r"\s*=\s*", pair)
@@ -1526,10 +1246,11 @@ class DbaseFile:
         cursor.rowsaffected = numupdated
         return cursor
     
-    def _execute_delete(self, sql_parser: SQLParser, *args):
-        filteredrecords = self.filter(sql_parser.field_param, 
-                                      sql_parser.value_param,
-                                      compare_function=sql_parser.compare_functiontion)
+    def _execute_delete(self, sql_parser: SQLParser, args=[]):
+        parsed = sql_parser.parsed
+        field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
+        filteredrecords = self.filter(field_param, value_param, 
+                                      compare_function=compare_function)
         numdeleted = len(filteredrecords)
         for record in filteredrecords:
             record['deleted'] = True
@@ -1539,15 +1260,17 @@ class DbaseFile:
         cursor.rowsaffected = numdeleted
         return cursor
     
-    def _execute_insert(self, sql_parser: SQLParser, *args):
+    def _execute_insert(self, sql_parser: SQLParser, args=[]):
         # print(f"Inserting {sql_parser._values}")
-        values = [coerce_number(v.strip().strip("'")) for v in sql_parser._values.split(",")]
+        parsed = sql_parser.parsed
+        # values = [coerce_number(v.strip().strip("'")) for v in sql_parser._values.split(",")]
+        values = [coerce_number(v.strip().strip("'")) for v in parsed.get('values')]
         if len(values) != len(self.fields):
             raise ValueError(f"Wrong number of fields: expected {len(self.fields)}, got {len(values)}") 
         if values[0] == '?':
             if not len(args):
                 raise ValueError("No values specified. When using '?' in the SQL command, values must be passed as arguments.")
-            real_values = [coerce_number(v) for v in args[0]]
+            real_values = [coerce_number(v) for v in args]
             if len(real_values) != len(self.fields):
                 raise ValueError(f"Wrong number of fields: expected {len(self.fields)}, got {len(real_values)}") 
             values = real_values               
@@ -1556,23 +1279,24 @@ class DbaseFile:
         cursor.rowsaffected = 1
         return cursor
     
-    def execute(self, sql_cmd: str, *args):
+    def execute(self, sql_cmd: str, args=[]):
         """
         Executes a SQL command on the database.
         """
         # raise NotImplementedError("SQL commands are not supported as yet.")
         sql_parser = SQLParser(sql_cmd)
-        sql_type = sql_parser.type
+        sql_type = sql_parser.parsed['command']
         if sql_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
             raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
         if sql_type == 'SELECT':
-            return self._execute_select(sql_parser, *args)
+            return self._execute_select(sql_parser, args)
         elif sql_type == 'INSERT':
-            return self._execute_insert(sql_parser, *args)
+            return self._execute_insert(sql_parser, args)
         elif sql_type == 'DELETE':
-            return self._execute_delete(sql_parser, *args)
+            return self._execute_delete(sql_parser, args)
         elif sql_type == 'UPDATE':
-            return self._execute_update(sql_parser, *args)
+            return self._execute_update(sql_parser, args)
+        
         
     def fields_view(self, start=0, stop=None, step=1, fields:List[DbaseField]=None, records=None):
         """
@@ -1668,21 +1392,11 @@ class Cursor:
                 break
         return retval
 
-    def execute(self, sql:str, *args):
+    def execute(self, sql:str, args=[]):
         if not self._connection:
             raise ValueError("No connection, cannot execute SQL command")
-        return self._connection.execute(sql, *args)
+        return self._connection.execute(sql, args)
     
-        # sql_parser = SQLParser(sql)
-        # if sql_parser.type != 'SELECT':
-        #     raise ValueError("Only SELECT commands are supported right now.")
-        # for i, table in enumerate(self._connection.tables):
-        #     if table == sql_parser.tables[0]:
-        #         dbf = DbaseFile(self._connection.filenames[i])
-        #         cursor = dbf.execute(sql)
-        #         return cursor
-        # raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
- 
 
 class Connection:
     def __init__(self, dirname:str):
@@ -1721,16 +1435,18 @@ class Connection:
     def Cursor(self):
         return Cursor(_connection=self)
     
-    def execute(self, sql:str, *args):
+    def execute(self, sql:str, args=[]):
         sql_parser = SQLParser(sql)
-        if sql_parser.type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
+        sql_parser_type = sql_parser.parsed['command']
+        if sql_parser_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
             raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
+        parsertable = sql_parser.parsed['tables'][0]
         for i, table in enumerate(self.tables):
-            if table == sql_parser.tables[0]:
+            if table == parsertable:
                 dbf = DbaseFile(self.filenames[i])
-                cursor = dbf.execute(sql, *args)
+                cursor = dbf.execute(sql, args)
                 return cursor
-        raise ValueError(f"Table '{sql_parser.tables[0]}' not found")
+        raise ValueError(f"Table '{parsertable}' not found")
 
 def connect(dirname:str):
     return Connection(dirname)
@@ -1842,7 +1558,20 @@ def make_pretty_table_lines(curr: Cursor)-> Generator[str, None, None]:
 
 if __name__ == '__main__':
     subprocess.run(['clear'])
-
+    conn = connect('db')
+    curr = conn.execute("update todos set task = 'Do something useful...' where id = 4;")
+    curr = conn.execute("select * from todos;")
+    for line in make_pretty_table_lines(curr):
+        print(line)
+    os.sys.exit(0)
+#############################################################
+    # dbf = DbaseFile("db/teams.dbf")
+    conn = connect('db')
+    curr = conn.execute("SELECT nombre as Team, titles as Championships FROM teams where id >= 3;")
+    for line in make_pretty_table_lines(curr):
+        print(line)
+    os.sys.exit(0)
+#############################################################
     dbf = DbaseFile("db/teams.dbf")
     sqli = "insert into teams (id, nombre, titles) values(6, 'Tiro Federal', 1);"
     curr = dbf.execute(sqli)
