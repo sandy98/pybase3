@@ -19,7 +19,7 @@ Classes:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.98.01"
+__version__ = "1.98.2"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
