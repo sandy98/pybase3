@@ -6,7 +6,6 @@ dist/
 venv/
 img/bak/
 pybase3.egg-info/
-docs/
 third-party/
 venv-dbase-iii/
 *.pyc
