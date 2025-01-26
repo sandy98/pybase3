@@ -4,6 +4,7 @@ pybase3
 
 This module provides a class to manipulate DBase III database files.
 It allows reading, writing, adding, updating and deleting records in the database.
+Includes classes Connection and Cursor to interact with the database in a Python DB-API 2.0 compliant way. 
 
 Classes:
     DBaseFile (Main class)
@@ -18,12 +19,27 @@ Classes:
          Resides in its own module, sqlparser.py)
     Connection
     Cursor
+
+Functions:
+    connect(filename: str) -> Connection
+    make_raw_lines(curr: Cursor)-> Generator[str, None, None]
+    make_list_lines(curr: Cursor)-> Generator[str, None, None]
+    make_csv_lines(curr: Cursor)-> Generator[str, None, None]
+    make_table_lines(curr: Cursor)->Generator[str, None, None]
+    make_pretty_table_lines(curr: Cursor)-> Generator[str, None, None]
+
+CLI scripts:
+    dbfview: (dbfview.py) A simple command line utility to view DBase III files.
+    dbfquery: (dbfquery.py) A simple command line utility to query/update DBase III 
+               files using SQL commands.
+    dbfheader: (header_reader.py) A simple command line utility to read the header
+    test: (test.py) A simple command line utility to test the library.
 """
 
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.98.5"
+__version__ = "1.98.7"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -60,6 +76,12 @@ getMonth = lambda: datetime.now().month
 getDay = lambda: datetime.now().day
 
 class Record(SmartDict):
+    """
+
+    Class to represent a record in a DBase III database.
+    Inherits from SmartDict, a dictionary with dot notation access to keys.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # self.deleted = False
@@ -80,6 +102,8 @@ class Record(SmartDict):
 
 
 class FieldType(Enum):
+    """Enum for dBase III field types."""
+
     CHARACTER = 'C'
     DATE = 'D'
     FLOAT = 'F'
@@ -98,6 +122,8 @@ class FieldType(Enum):
 
 
 class BoxType(Enum):
+    """Enum for box drawing characters."""
+
     UP_L = '\u250C'
     UP_R = '\u2510'
     DOWN_L = '\u2514'
@@ -126,6 +152,8 @@ class BoxType(Enum):
 
 @dataclass
 class DbaseHeader:
+    """Class to represent the header of a DBase III database file."""
+
     version: int = 3 # 1 byte
     year: int = getYear() # 1 byte
     month: int = getMonth() # 1 byte
@@ -136,16 +164,19 @@ class DbaseHeader:
     reserved: bytes = b'\x00' * 20
 
     def load_bytes(self, bytes):
+        """Transforms a byte string (usually read from disk) into a DbaseHeader object."""
         (self.version, self.year, self.month, self.day, 
          self.records, self.header_size, self.record_size, 
          self.reserved) = struct.unpack('<BBBBLHH20s', bytes)
  
     def to_bytes(self):
+        """Transforms a DbaseHeader object into a byte string (usually to write to disk)."""
         return struct.pack('<BBBBLHH20s', self.version, self.year, self.month, self.day, 
                            self.records, self.header_size, self.record_size, 
                            self.reserved)
     
     def __post_init__(self):
+        """Validates the header fields."""
         curr_year = getYear()
         # curr_month = getMonth()
         # curr_day = getDay()
@@ -169,6 +200,8 @@ class DbaseHeader:
 
 @dataclass
 class DbaseField:
+    """Class to represent a field (aka column) in a DBase III database file."""
+
     name: str = '\x00' * 11  # Field name, 11 bytes
     type: str = 'C'  # Field type (C, N, etc.), 1 byte
     address: int = 0  # 1st reserved, 4 bytes
@@ -177,10 +210,18 @@ class DbaseField:
     reserved: bytes = b'\x00' * 14  #  14 reserved bytes
 
     def __post_init__(self):
+        """Validates the field attributes."""
+
         self._alias = self.name
 
     @property
     def alias(self):
+        """
+        Returns the field alias, if set, or the field name otherwise.
+        The alias is used in SQL queries to refer to the field.
+        For example: 'select fieldname as aliasname from tablename'
+        """
+
         return self._alias if self._alias != ('\x00' * 11) else self.name
     
     @alias.setter
@@ -192,6 +233,8 @@ class DbaseField:
         self._alias = '\x00' * 11
 
     def load_bytes(self, bytes):
+        """Transforms a byte string (usually read from disk) into a DbaseField object."""
+
         # Extract the name as exactly 11 bytes
         raw_name = bytes[:11].rstrip(b'\x00').strip()  # Strip null terminators
         self.name = raw_name.decode('latin1')
@@ -200,6 +243,8 @@ class DbaseField:
         (self.address, self.length, self.decimal, self.reserved) = struct.unpack('<IBB14s', bytes[12:])
         
     def to_bytes(self):
+        """Transforms a DbaseField object into a byte string (usually to write to disk)."""
+
         return struct.pack(
             '<11sBIBB14s',
             to_bytes(self.name)[:11].ljust(11, b'\x00'),  # Ensure name is exactly 11 bytes
@@ -216,26 +261,36 @@ class DbaseFile:
     Class to manipulate DBase III database files (read and write).
 
     Methods:
-        __init__(self, filename: str)
-        __del__(self)
-        __len__(self)
-        __getitem__(self, key)
-        __iter__(self)
-         _init(self)
-        istartswith(f: str, v: str) -> bool
-        iendswith(f: str, v: str) -> bool
-        create(cls, filename: str, fields: List[Tuple[str, FieldType, int, int]])
-        add_record(self, record_data: dict)
-        update_record(self, index: int, record_data: dict)
-        del_record(self, key, value = True)
-        get_record(self, key)
-        get_field(self, fieldname)
-        search(self, fieldname, value, start=0, funcname="", compare_function=None)
-        find(self, fieldname, value, start=0, compare_function=None)
-        index(self, fieldname, value, start=0, compare_function=None)
-        filter(self, fieldname, value, compare_function=None)
-        save_record(self, key, record)
-        commit(self)
+        create(filename: str, fields: List[Tuple[str, str, int, int]]) -> DbaseFile
+        import_from(filename:str, tablename:str=None, stype:str='sqlite3', exportname:str=None) -> DbaseFile
+        export_to(desttype:str='sqlite3', filename:str=None) -> bool
+        __init__(filename: str)
+        __del__()
+        __len__() -> int
+        __getitem__(key) -> Record
+        __iter__() -> Generator[Record, None, None]
+        __str__() -> str
+        _init()
+        _load_mdx()
+        _save_mdx()
+        schema() -> str
+        fields_info() -> str
+        field_names() -> List[str]
+        field_alias() -> List[str]
+        field_types() -> List[str]
+        field_lengths() -> List[int]
+        max_field_length(fieldname: str) -> int
+        max_field_lengths() -> List[int]
+        tmax_field_lengths() -> List[int]
+        commit(filename:str=None) -> Tuple[bool, int]
+        pack(filename:str=None) -> Tuple[bool, int]
+        add_record(*data)
+        del_record(key, value=True)
+        update_record(key, record)
+        get_record(key) -> Record
+        get_field(fieldname) -> DbaseField
+        search(fieldname, value, start=0, funcname="", compare_function=None)
+        update_mdx()
     """
 
     import_types = ['sqlite3', 'sqlite', 'csv']
@@ -262,10 +317,11 @@ class DbaseFile:
         :param v: Suffix to look for.
         :return: True if 'f' ends with 'v', False otherwise.
         """
+
         return f.lower().endswith(v.lower())
 
     @classmethod
-    def create(cls, filename: str, fields: List[Tuple[str, str, int, int]]):
+    def create(cls, filename: str, fields: List[Tuple[str, str, int, int]]) :
         """
         Creates a new DBase III database file with the specified fields.
 
@@ -273,6 +329,7 @@ class DbaseFile:
         :param fields: List of tuples describing the fields (name, type, length, decimals).
         :raises FileExistsError: If the file already exists.
         """
+
         if os.path.exists(filename):
             raise FileExistsError(f"File {filename} already exists")
         with open(filename, 'wb') as file:
@@ -295,6 +352,7 @@ class DbaseFile:
         """
         Imports a database from a source of the specified type.
         """
+
         if '.' in filename:
             srctype = filename.split('.')[-1]
         else:
@@ -390,6 +448,7 @@ class DbaseFile:
         """
         Exports the database to a destination of the specified type.
         """
+
         if desttype not in self.export_types:
             raise ValueError(f"Invalid destination type {desttype}")
         if desttype.startswith('sqlite'):
@@ -423,6 +482,7 @@ class DbaseFile:
 
         :param filename: Name of the database file.
         """
+
         self.lock = Lock()
         self.filename = filename
         self.filesize = os.path.getsize(filename)
@@ -434,19 +494,24 @@ class DbaseFile:
         """
         Closes the database file when the instance is destroyed.
         """
+
         self.file.close()
 
     def __len__(self):
         """
         Returns the number of records in the database, including records marked to be deleted.
         """
+
         return self.header.records
     
     def __getitem__(self, key):
         """
-        Returns from the database a single record (dictionary with field names and field values) 
-        or a list of them (if a slice is used).
+        Returns a single record (dictionary with field names and field values) 
+        from the database or a list of them (if a slice is used).
+        
+        :param key: Index of the record to retrieve, or a slice.
         """
+
         if isinstance(key, slice):
             start = key.start or 0
             stop = key.stop or self.header.records
@@ -479,6 +544,7 @@ class DbaseFile:
         Returns an iterator over the records in the database, 
         allowing notation like 'for record in dbf'.
         """
+
         self.file.seek(self.header.header_size)
         return iter(self.get_record(i) for i in range(self.header.records))
         
@@ -486,6 +552,7 @@ class DbaseFile:
         """
         Returns a string with information about the database file.
         """
+
         lastmodified = datetime.strftime(datetime(1900 + self.header.year, self.header.month, self.header.day), '%Y-%m-%d')
         return f"""
         File version: {self.header.version}
@@ -534,8 +601,9 @@ class DbaseFile:
 
     def _load_mdx(self):
         """
-        Loads the MDX index file, if it exists.
+        Loads the MDX (.pmdx) index file, if it exists.
         """
+
         mdxfile = self.filename.replace('.dbf', '.pmdx')
         if os.path.exists(mdxfile):
             with open(mdxfile, 'rb') as file:
@@ -543,14 +611,19 @@ class DbaseFile:
 
     def _save_mdx(self):
         """
-        Saves the MDX index file.
+        Saves the MDX index file (dbfname.pmdx).
         """
+
         mdxfile = self.filename.replace('.dbf', '.pmdx')
         with open(mdxfile, 'wb') as file:
             pickle.dump(self.indexes, file)
 
     @property
     def schema(self):
+        """
+        Returns a string with the schema of the database.
+        """
+
         prefix = f"""
         CREATE TABLE IF NOT EXISTS {self.tablename} (
 """
@@ -573,49 +646,50 @@ class DbaseFile:
         return prefix + ",\n".join(fields) + suffix
 
     @property
-    def fields_info(self):
+    def fields_info(self) :
         """
         Returns a string with information about the fields in the database.
         """
+
         return "\n".join(f"{field.name} ({field.type}): {field.length}" for field in self.fields)
 
     @property
-    def field_names(self):
+    def field_names(self) -> List[str]:
         """
         Returns a list with the name of each field in the database.
         """
+
         return [field.name.strip() for field in self.fields]
     
     @property
-    def field_alias(self):
+    def field_alias(self) -> List[str]:
         """
         Returns a list with the name of each field in the database.
         """
+
         return [field.alias.strip() for field in self.fields]
     
     @property
-    def field_types(self):
+    def field_types(self) -> List[str]:
         """
         Returns a list with the type of each field in the database.
         """
+
         return [field.type for field in self.fields]
     
     @property
-    def field_lengths(self):
+    def field_lengths(self) -> List[int]:
         """
         Returns a list with the length of each field in the database.
         """
+
         return [field.length for field in self.fields]
     
     def max_field_length(self, fieldname):
         """
         Returns the maximum length of the specified field (including length of field name) in the database.
         """
-        # with self.lock:
-        #     records = self[:]
-        #     records = filter(lambda r: r is not None, records)
-        #     max_record_len = max((len(str(record[fieldname])) for record in records))
-        #     return max([len(fieldname), max_record_len])
+
         field = None
         for f in self.fields:
             if f.name.strip() == fieldname:
@@ -630,6 +704,7 @@ class DbaseFile:
         """
         Returns the maximum length of each field (including length of field name) in the database.
         """
+
         return [self.max_field_length(field) for field in self.field_names]
 
     @property
@@ -638,6 +713,7 @@ class DbaseFile:
         Returns the maximum length of each field (including length of field name) in the database.
         Threaded version.
         """
+
         res = []
         fields = self.field_names
         with ThreadPool() as pool:
@@ -653,6 +729,7 @@ class DbaseFile:
         Skips records marked as deleted, thus effectively deleting them, 
         and adjusts the header accordingly.
         """
+
         numdeleted = 0
         for record in self:
             if record.get('deleted'):
@@ -721,6 +798,7 @@ class DbaseFile:
         Raises an IndexError if the key is out of range.
         Meant for internal use only.
         """
+
         if 0 > key >= self.header.records:  
             raise IndexError("Record index out of range")
 
@@ -730,6 +808,7 @@ class DbaseFile:
 
         :param record_data: SmartDictionary with the new record's data.
         """
+
         if len(data) != len(self.fields):
             raise ValueError("Wrong number of fields")
         value = b''
@@ -760,8 +839,9 @@ class DbaseFile:
     def del_record(self, key, value = True):
         """
         Marks a record as deleted.
-        To effectively delete the record, use the write() method afterwards.
+        To effectively delete the record, use the commit() method afterwards.
         """
+
         self._test_key(key)
         record = self.get_record(key)
         record['deleted'] = value
@@ -777,6 +857,7 @@ class DbaseFile:
         :param record_data: SmartDictionary with the updated data.
         :raises IndexError: If the record index is out of range.
         """
+
         self._test_key(key)
         if record.get('deleted'):
             self.commit()
@@ -790,6 +871,7 @@ class DbaseFile:
         Retrieves a record (dictionary with field names and field values) from the database.
         Used internally by the __getitem__ method.
         """
+
         self._test_key(key)
         offset = self.header.header_size + key * self.header.record_size
         self.file.seek(offset)
@@ -842,6 +924,7 @@ class DbaseFile:
         """
         Returns the field object with the specified name, case sensitive.
         """
+
         cond_true = lambda f: (
             f.name.strip() == fieldname.strip()
             or f.alias.strip() == fieldname.strip()
@@ -859,6 +942,7 @@ class DbaseFile:
         starting from the specified index, for which the specified comparison function returns True.
         It will try to use the field index if available.
         """
+
         for i, alias in enumerate(self.field_alias):
             if alias == fieldname:
                 fieldname = self.fields[i].name
@@ -927,6 +1011,7 @@ class DbaseFile:
         starting from the specified index, for which the specified comparison function returns True,
         using the field index.
         """
+
         if fieldname not in self.indexes:
             raise ValueError(f"Index {fieldname} not found.")
 
@@ -964,6 +1049,7 @@ class DbaseFile:
         Wrapper for search() with funcname="find".
         Returns the first record (dictionary) found, or None if no record meeting given criteria is found.
         """ 
+
         return self.search(fieldname, value, start, "find", compare_function)
     
     def index(self, fieldname, value, start=0, compare_function=None):
@@ -971,12 +1057,14 @@ class DbaseFile:
         Wrapper for search() with funcname="index".
         Returns index of the first record found, or -1 if no record meeting given criteria is found.
         """ 
+
         return self.search(fieldname, value, start, "index", compare_function)
 
     def filter(self, fieldname, value, compare_function=None):
         """
         Returns a list of records (dictionaries) that meet the specified criteria.
         """
+
         ret = []
         index = -1
         while True:
@@ -994,6 +1082,7 @@ class DbaseFile:
         """
         Returns a generator, corresponding to the list of records from the database.
         """
+
         if start is None:
             start = 0
         if stop is None:
@@ -1007,6 +1096,7 @@ class DbaseFile:
         """
         Returns a generator of CSV strings, each one with the CSV repr o a record in the database.
         """
+
         return self.list(start, stop, ",", records)
     
     @property
@@ -1014,10 +1104,16 @@ class DbaseFile:
         """
         Returns a CSV string with the field names.
         """
+
         return ",".join(field_name for field_name in self.field_names)
 
     @staticmethod
     def _format_field(field, record):
+        """
+        Returns a string with the field value aligned to the field length.
+        If the field is a character field, it is left aligned, otherwise it is right aligned.
+        """
+
         if field.type == FieldType.CHARACTER.value:
             return str(record.get(field.name) or record.get(field.alias) or '').ljust(field.length + 2)
         else: 
@@ -1028,6 +1124,7 @@ class DbaseFile:
         Returns a  generator yielding a string for each line representing a record in the database, 
         wrapped in sqlite3 style (.mode table) lines.
         """
+
         if start is None:
             start = 0
         if stop is None:
@@ -1068,6 +1165,7 @@ class DbaseFile:
         """
         Returns a string with the record at the specified index, with fields right aligned to max field lengths.
         """
+
         #record = self.get_record(index)
         names_lengths = names_lengths or zip(self.field_names, self.max_field_lengths)
         # names_lengths = names_lengths or zip(self.field_names, self.field_lengths)
@@ -1079,6 +1177,7 @@ class DbaseFile:
         Returns a generator which resolves to an array of strings, each one with 
         with the records in the specified range, with fields right aligned to max field lengths.
         """
+
         if start is None:
             start = 0
         if stop is None:
@@ -1094,6 +1193,7 @@ class DbaseFile:
         """
         Returns a string containing the field names right aligned to max field lengths.
         """
+
         names_lengths = zip(self.field_names, self.max_field_lengths)
         # names_lengths = zip(self.field_names, self.field_lengths)
         afields = [f"{name.rjust(length).ljust(length+1)}" for name, length in names_lengths]
@@ -1104,6 +1204,7 @@ class DbaseFile:
         Writes a record (dictionary with field names and field values) to the database
         at the specified index.
         """
+
         self._test_key(key)
         self.file.seek(self.header.header_size + key * self.header.record_size)
         if record.get('deleted'):
@@ -1125,6 +1226,11 @@ class DbaseFile:
         self.file.flush()
 
     def transform(self, record:Record, fields:List[DbaseField]):
+        """
+        Returns a record with the specified fields, usually with
+        fields 'deleted' and 'metadata' stripped.
+        """
+
         ret = Record()
         for field in [self.get_field(f) for f in fields]:
             # ret[fields[field]] = record.get(field.name)
@@ -1136,6 +1242,7 @@ class DbaseFile:
         """
         Returns a cursor object for the database.
         """
+
         if not fields:
             fields = self.fields
         else:
@@ -1149,8 +1256,13 @@ class DbaseFile:
         return Cursor(description, records)
 
     def parse_conditions(self, wherestr: str) -> List[Tuple[str, Any, Callable]]:
+        """
+        Parses the WHERE clause of a SQL statement and returns a list of tuples
+        with the field name, the value to compare and the comparison function.
+        """
+
         if not wherestr:
-            return [(self.field_names[0], 0, lambda f, v: True)]
+            return [(self.field_names[0], 0 if self.field_types[0] in ['N', 'F'] else '', lambda f, v: True)]
 
         operator_map = {
             "=": "==",
@@ -1201,6 +1313,13 @@ class DbaseFile:
         return [(lhs, rhs, searchfunc)]
 
     def _execute_select(self, sql_parser: SQLParser, args=[]):
+        """
+        Receives a parsed SQL SELECT command and returns a Cursor object with the results.
+
+        :param sql_parser: SQLParser object with the parsed SQL command.
+        :returns Cursor object with the results of the SELECT command.
+        """
+
         fieldobjs = {}
         parsed = sql_parser.parsed
 
@@ -1236,6 +1355,13 @@ class DbaseFile:
         return cursor
 
     def _execute_update(self, sql_parser: SQLParser, args=[]):
+        """
+        Receives a parsed SQL UPDATE command and returns a Cursor object with the results.
+        
+        :param sql_parser: SQLParser object with the parsed SQL command.
+        :returns Cursor object with the results of the UPDATE command.
+        """
+
         parsed = sql_parser.parsed
         field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
         filteredrecords = self.filter(field_param, value_param, compare_function=compare_function)
@@ -1258,6 +1384,13 @@ class DbaseFile:
         return cursor
     
     def _execute_delete(self, sql_parser: SQLParser, args=[]):
+        """
+        Receives a parsed SQL DELETE command and returns a Cursor object with the results.
+        
+        :param sql_parser: SQLParser object with the parsed SQL command.
+        :returns Cursor object with the results of the DELETE command.
+        """
+
         parsed = sql_parser.parsed
         field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
         filteredrecords = self.filter(field_param, value_param, 
@@ -1272,6 +1405,13 @@ class DbaseFile:
         return cursor
     
     def _execute_insert(self, sql_parser: SQLParser, args=[]):
+        """
+        Receives a parsed SQL INSERT command and returns a Cursor object with the results.
+
+        :param sql_parser: SQLParser object with the parsed SQL command.
+        :returns Cursor object with the results of the INSERT command.
+        """
+
         # print(f"Inserting {sql_parser._values}")
         parsed = sql_parser.parsed
         # values = [coerce_number(v.strip().strip("'")) for v in sql_parser._values.split(",")]
@@ -1293,8 +1433,12 @@ class DbaseFile:
     def execute(self, sql_cmd: str, args=[]):
         """
         Executes a SQL command on the database.
+        
+        :param sql_cmd: SQL command to execute
+        :param args: List of arguments to be passed to the SQL command.
+        :returns Cursor object with the results of the SQL command.
         """
-        # raise NotImplementedError("SQL commands are not supported as yet.")
+
         sql_parser = SQLParser(sql_cmd)
         sql_type = sql_parser.parsed['command']
         if sql_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
@@ -1308,11 +1452,18 @@ class DbaseFile:
         elif sql_type == 'UPDATE':
             return self._execute_update(sql_parser, args)
         
-        
     def fields_view(self, start=0, stop=None, step=1, fields:List[DbaseField]=None, records=None):
         """
         Returns a generator yielding a record with fields specified in the fields dictionary.
+        
+        :param start: Index of the first record to return.
+        :param stop: Index of the last record to return. len(self) if None.
+        :param step: Step between records to return.
+        :param fields: List of fields to include in the records.
+        :param records: List of records to include in the view. If omitted, self[:] is used
+        :returns: Generator yielding records with the specified fields.
         """
+
         records = records if isinstance(records, list) else self[start:stop:step]
         if not fields:
             fields = self.fields
@@ -1321,7 +1472,9 @@ class DbaseFile:
     def make_mdx(self, fieldname:str="*"):
         """
         Generates a .pmdx index for the specified field.
-          """
+
+        :param fieldname: Name of the field to index. If '*', indexes all fields.
+        """
         
         if fieldname == "*":
             for field in self.fields:
@@ -1341,13 +1494,18 @@ class DbaseFile:
         indexing_thread.start()
 
     def update_mdx(self):
+        """
+        Updates the .pmdx index file.
+        """
+
         for field in self.indexes.keys():
             self.make_mdx(field)
 
     def del_mdx(self,entry:str="*"):
         """
-        Deletes the MDX index file.
+        Deletes the .pmdx index file.
         """
+
         if entry == "*":
             mdxfile = self.filename.replace('.dbf', '.pmdx')
             if os.path.exists(mdxfile):
@@ -1363,6 +1521,12 @@ class DbaseFile:
 
 @dataclass
 class Cursor:
+    """
+    Cursor class for database operations.
+    Implements the fetchone(), fetchall() and fetchmany() methods indicated by
+    the Python DB API 2.0 specification
+    """
+
     description: List[Tuple[int, str, str, str, int, int]] = field(default_factory=list)
     records: Generator = None
 
@@ -1410,7 +1574,22 @@ class Cursor:
     
 
 class Connection:
+    """
+    Connection class for database operations.
+    Implements the cursor() and execute(sqlcmd) methods indicated 
+    by the Python DB API 2.0 specification
+    """
+    
     def __init__(self, dirname:str):
+        """
+        Initializes the Connection object.
+        
+        :param dirname: Directory name where the database files are located.
+                        Adds the non-standard 'dirname' attribute to the Connection object,
+                        as well as the 'name' attribute with the base name of the directory, 
+                        and 'tablenames' attribute with the list of table names.    
+        """
+
         self.dirname = dirname
         if os.path.exists(dirname):
             if os.path.isdir(dirname):
@@ -1426,6 +1605,11 @@ class Connection:
         self._load_files()
 
     def _load_files(self):
+        """
+        Loads the .dbf files in the directory specified in the 'dirname' attribute.
+        For private use by '__init__' method.
+        """
+
         for root, _, files in os.walk(self.dirname):
             for file in files:
                 if file.endswith('.dbf'):
@@ -1436,17 +1620,40 @@ class Connection:
           
     @property
     def tablenames(self):
+        """
+        Returns the list of table names within the directory pointed by 'dirname'
+        and its subdirectories.
+        """
+
         # return [table.tablename for table in self.tables]
         return self.tables    
 
     @property
     def filenames(self):
+        """
+        Returns the list of filenames within the directory pointed by 'dirname'
+        Includes the full path of each, including the extension.
+        """
+
         return self._files
     
     def Cursor(self):
+        """
+        Method included in order to comply with the Python DB API 2.0 specification.
+
+        :returns: Cursor object for database operations.
+        """
+
         return Cursor(_connection=self)
     
-    def execute(self, sql:str, args=[]):
+    def execute(self, sql:str, args=[]) -> Cursor:
+        """
+        Executes a SQL command on the database file specified within it.
+        
+        :params sql: SQL command to execute.
+        :returns: Cursor object with the results of the SQL command.
+        """
+
         sql_parser = SQLParser(sql)
         sql_parser_type = sql_parser.parsed['command']
         if sql_parser_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
@@ -1459,7 +1666,10 @@ class Connection:
                 return cursor
         raise ValueError(f"Table '{parsertable}' not found")
 
+
 def connect(dirname:str):
+    """Returns a Connection object for the specified directory."""
+
     return Connection(dirname)
 
 toplines = {
@@ -1506,7 +1716,10 @@ separators = {
     'csv':   ',',
 }
 
+# Display functions
+
 def make_topline(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    """Returns the top line of a table-like object of the type specified by linetype"""
     d = toplines[linetype]
     string = d['left']
     string += d['join'].join([d['line'] * max([t[4], len(t[1])]) for t in description])
@@ -1514,6 +1727,7 @@ def make_topline(linetype:str, description: List[Tuple[int, str, str, str, int, 
     return string
 
 def make_bottomline(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    """Returns the bottom line of a table-like object of the type specified by linetype"""
     d = bottomlines[linetype]
     string = d['left']
     string += d['join'].join([d['line'] * max([t[4], len(t[1])]) for t in description])
@@ -1521,6 +1735,7 @@ def make_bottomline(linetype:str, description: List[Tuple[int, str, str, str, in
     return string
 
 def make_intermediateline(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    """Returns the intermediate (line joiner) line of a table-like object of the type specified by linetype"""
     d = seplines[linetype]
     string = d['left']
     string += d['join'].join([d['line'] * max([t[4], len(t[1])]) for t in description])
@@ -1528,6 +1743,7 @@ def make_intermediateline(linetype:str, description: List[Tuple[int, str, str, s
     return string
 
 def make_header_line(linetype:str, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    """Returns the header line (field names) of a table-like object of the type specified by linetype"""
     d = separators[linetype]
     string = d if linetype  != 'csv' else ' '
     string += d.join([t[1].center(max([t[4], len(t[1])])) for t in description])
@@ -1535,6 +1751,7 @@ def make_header_line(linetype:str, description: List[Tuple[int, str, str, str, i
     return string
 
 def make_cursor_line(linetype:str, r: Record, description: List[Tuple[int, str, str, str, int, int]])-> str:
+    """Returns a data line (field values) of a table-like object of the type specified by linetype"""
     adjstr = lambda v, w:  str(v).rjust(w) if str(v).isdigit() else str(v).ljust(w)
     d = separators[linetype]
     string = d if linetype  != 'csv' else ' '
@@ -1543,6 +1760,7 @@ def make_cursor_line(linetype:str, r: Record, description: List[Tuple[int, str, 
     return string
 
 def make_cursor_lines(linetype:str, curr: Cursor)-> Generator[str, None, None]:
+    """Generates all the lines for a table-like object of the type specified by linetype"""
     description = curr.description
     yield make_topline(linetype, description)
     yield make_header_line(linetype, description)
@@ -1553,21 +1771,29 @@ def make_cursor_lines(linetype:str, curr: Cursor)-> Generator[str, None, None]:
     yield make_bottomline(linetype, description)
 
 def make_raw_lines(curr: Cursor)-> Generator[str, None, None]:
+    """Generates all the lines for a table-like object , 'raw' (no separators) style"""
     return make_cursor_lines('line', curr)
 
 def make_list_lines(curr: Cursor)-> Generator[str, None, None]:
     return make_cursor_lines('list', curr)
 
 def make_csv_lines(curr: Cursor)-> Generator[str, None, None]:
+    """Generates all the lines for a table-like object , 'csv' style"""
     return make_cursor_lines('csv', curr)
 
 def make_table_lines(curr: Cursor)->Generator[str, None, None]:
+    """Generates all the lines for a table-like object , 'sqlite3 .table' style"""
     return make_cursor_lines('table', curr)
 
 def make_pretty_table_lines(curr: Cursor)-> Generator[str, None, None]:
+    """Generates all the lines for a table-like object , 'box lines' style"""
     return make_cursor_lines('pretty_table', curr)
 
 if __name__ == '__main__':
+    """
+    Tests for the dbf module.
+    """
+
     subprocess.run(['clear'])
     conn = connect('db')
     curr = conn.execute("update todos set task = 'Do something useful...' where id = 4;")

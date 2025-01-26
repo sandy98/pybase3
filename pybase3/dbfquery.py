@@ -112,8 +112,22 @@ Type 'help' for help.\n
                     print(f"Table '{table}' not found.")
                 break
 
+    def do_schema(self, table):
+        """Usage: schema <tablename>\nShows the schema of the specified table"""
+        
+        print(f"Schema of table '{table}':", end='\n')
+        for i, name in enumerate(self.connection.tablenames):
+            if table.lower() == name.lower():
+                seltable = self.get_table(table)
+                if seltable:
+                    print(seltable.schema)
+                else:
+                    print(f"Table '{table}' not found.")
+                break
+
     def do_delete(self, line):
         """Usage: delete from <tablename> where <condition>\nDeletes records from the specified table"""
+
         line = f"delete {line}{';' if not line.endswith(';') else ''}"
         print(line)
         print()
