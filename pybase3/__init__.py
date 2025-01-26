@@ -19,7 +19,7 @@ Classes:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.98.2"
+__version__ = "1.98.3"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -1168,7 +1168,7 @@ class DbaseFile:
             if rhs[0] == '%' and rhs[-1] == '%':
                 operator = 'in'
                 rhs = rhs[1:-1]
-                lhs, rhs = rhs, lhs
+                # lhs, rhs = rhs, lhs
             elif rhs[0] == '%':
                 operator = 'endswith'
                 rhs = rhs[1:]
@@ -1177,7 +1177,7 @@ class DbaseFile:
                 rhs = rhs[:-1]
             else:
                 operator = 'in'
-                lhs, rhs = rhs, lhs
+                # lhs, rhs = rhs, lhs
         else:
             if operator not in operator_map:
                 raise ValueError(f"Invalid operator {operator}")
@@ -1185,7 +1185,14 @@ class DbaseFile:
 
         if rhs.isdigit():
             rhs = coerce_number(rhs)
-        lambdasrc = f"lambda f, v: f {operator} v"
+        if operator == 'in':
+            lambdasrc = f"lambda f, v: f.find(v) >= 0"
+        elif operator == 'startswith':
+            lambdasrc = f"lambda f, v: f.startswith(v)" 
+        elif operator == 'endswith':
+            lambdasrc = f"lambda f, v: f.endswith(v)"
+        else:
+            lambdasrc = f"lambda f, v: f {operator} v"
         searchfunc = eval(lambdasrc)
         return [(lhs, rhs, searchfunc)]
 
