@@ -15,12 +15,18 @@
 
 Biblioteca de Python diseñada para manipular archivos de bases de datos DBase III. Permite leer, escribir, agregar y actualizar registros en la base de datos.
 
+A partir de la versión 1.90. ... se agregaron las clases Connection y Cursor, comenzando el camino hacia la conformidad total con la especificación de la API de base de datos de Python v2.0 (PEP 249).
+Hasta este punto, tanto Cursor como Connection admiten el método `execute`, que acepta comandos `select, insert, update y delete`. Se está desarrollando un mayor soporte para SQL (`create, etc`).
+Estas características funcionan de manera estable a partir de la versión 1.98.3, aunque existen algunas limitaciones de uso, principalmente el hecho de que, en este momento, las consultas están "centradas en la tabla", lo que significa que no funcionan en más de una tabla a la vez. Esto se abordará en futuras versiones, ya que es un requisito para alcanzar la conformidad total.
+Con suerte, pybase3 se incluirá en la lista junto con los otros módulos compatibles con la API de base de datos de Python (Sqlite3, MySQL, Postgre, etc.)
+
 Aunque este formato de archivo para bases de datos ya no se utiliza en gran medida, el presente trabajo es una herramienta útil para recuperar datos antiguos, así como un homenaje a una hermosa parte de la historia de la informática.
 
 A partir de las versiones actualizadas el 4 de enero de 2025, `pybase3` admite la indexación a través de archivos `.pmdx` (Python + .mdx), lo que da como resultado consultas sorprendentemente rápidas. Consulte a continuación para obtener más detalles.
 
 ## Características
 
+- Clases API DB: Connection y Cursor
 - Leer archivos de bases de datos DBase III
 - Escribir en archivos de bases de datos DBase III
 - Agregar nuevos registros
@@ -45,6 +51,25 @@ pip install pybase3
 ```
 
 ## Uso
+
+### Clase `Connection`
+
+```python
+import pybase3
+from pybase3 import Connection
+
+# Se conecta al directorio 'db'. Se incluirán todos los archivos .dbf que contenga.
+conn = Connection('db')
+# Obtiene un objeto Cursor de la conexión ejecutando un comando SQL
+curr = conn.execute('select id, nombre as name, title from team order by title desc;')
+# Pasa el cursor a una función de formato de datos
+for line in pybase3.make_pretty_table_lines(curr):
+print(line)
+# o, alternativamente, invoca un método del objetos cursor para recuperar las filas
+curr = conn.execute('select id, nombre as name, title from team order by title desc;')
+rows = curr.fetchall()
+print(f"{len(rows)} records retrieved.")
+```
 
 ### Clase principal
 

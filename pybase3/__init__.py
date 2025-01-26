@@ -11,15 +11,19 @@ Classes:
     DbaseField
     Record
     FieldType
-    SQLParser
+    SQLParser 
+        (Additional class for SQL queries. 
+         It stands alone and can be used independently of the DBaseFile class.
+         It's used internally by the DBaseFile class to parse SQL queries.
+         Resides in its own module, sqlparser.py)
     Connection
-
+    Cursor
 """
 
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.98.3"
+__version__ = "1.98.5"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"

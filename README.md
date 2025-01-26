@@ -3,6 +3,7 @@
 </p>
 
 <!--![PyPI - Current Version](https://img.shields.io/pypi/v/pybase3)-->
+
 <p>
   <a href="https://pypi.org/project/pybase3">
     <img src="https://img.shields.io/pypi/v/pybase3" alt="PyPI - Current Version">
@@ -14,12 +15,17 @@
 
 Python library meant to manipulate DBase III database files. It allows reading, writing, adding, and updating records in the database.
 
+Beginning with version 1.90. ...  classes Connection and Cursor were added, beginning the road to fully conformance with  Python Database API Specification v2.0 (PEP 249).
+To this point, both Cursor and Connection support `execute` method, which accepts `select, insert, update and delete` commands. Further support for SQL (`create, etc`) is underway.
+This features work in a stable manner as of version 1.98.3, even though there are some use limitations, mainly the fact that right now, queries are 'table-centered', meaning they don't work on more than one table at a time. This will be adressed in future versions, as it is a requisite to become fully conformant.
+Hopefully pybase3 will become listed with the other Python DB API conformant modules (Sqlite3, MySQL, Postgre, etc)
+
 Even though this file format for databases is largely no longer in use, the present work is a useful tool to retrieve legacy data, as much as a tribute to a beautiful part of computer history.
 
 Initiating from versions updated on 2025-01-04, `pybase3` supports indexing through `.pmdx` files (Python + .mdx), which results in astonishingly fast queries. See below for details.
 
 ## Features
-
+- Connection and Cursor DB API classes
 - Read DBase III database files
 - Write to DBase III database files
 - Add new records
@@ -30,22 +36,41 @@ Initiating from versions updated on 2025-01-04, `pybase3` supports indexing thro
 
 ## Installation
 
-To install the library, clone this repository and navigate to the project directory:
+To install the library, use `pip` to download it from Pypi. This is the preferred method: 
+
+```bash
+pip install pybase3
+```
+
+or clone the repository and navigate to the project directory:
 
 ```bash
 git clone https://github.com/sandy98/pybase3.git
 cd pybase3
 ```
 
-or
-
-```bash
-pip install pybase3
-```
-
 ## Usage
 
-### Main class
+### `Connection` class
+
+```python
+import pybase3
+from pybase3 import Connection
+
+# Connects to 'db' directory. All .dbf files within will be included.
+conn = Connection('db') 
+# Gets a Cursor object from the connection by executing a SQL command
+curr = conn.execute('select id, nombre as name, titles from teams order by titles desc;')
+# Hands the cursor to a data formatting function 
+for line in pybase3.make_pretty_table_lines(curr):
+  print(line)
+# or, alternatively, invokes a method of the cursor objects to retrieve the rows
+curr = conn.execute('select id, nombre as name, titles from teams order by titles desc;')
+rows = curr.fetchall()
+print(f"{len(rows)} records retrieved.")
+```
+
+### `DbaseFile` class
 
 ```python
 from pybase3 import DBaseFile, FieldType
