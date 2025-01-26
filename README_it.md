@@ -88,6 +88,39 @@ print(test.filter('name', 'ja', compare_function=self.istartswith))
 
 ```
 
+### utilità `dbfquery`
+
+```bash
+dbfquery <dbf_directory>
+
+# Esempio di utilizzo
+
+$ dbfquery db
+
+Benvenuti in pybase3 SQL shell v. 1.98.7
+SQL per dBase III+
+Directory di lavoro: /home/ernesto/Programas/2025/python/pybase3 / 22 tabelle trovate.
+Digita 'help' per la guida.
+
+sql> select * from teams where titles > 40 order by titles desc;
+
+┌────┬──────────────────────────────────────────────────┬──────┐
+│ id │                      nombre                      │titles│
+├────┼──────────────────────────────────────────────────┼──────┤
+│   1│River Plate                                       │    77│
+├────┼──────────────────────────────────────────────────┼──────┤
+│   2│Boca Juniors                                      │    75│
+├────┼──────────────────────────────────────────────────┼──────┤
+│   3│Racing Club                                       │    47│
+├────┼──────────────────────────────────────────────────┼──────┤
+│  13│Independiente                                     │    43│
+└────┴──────────────────────────────────────────────────┴──────┘
+
+sql> quit
+Bye, thank you for using SQL with dBase III
+
+```
+
 ### Utilità di navigazione del database
 
 ```bash
