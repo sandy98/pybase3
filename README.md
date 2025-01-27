@@ -182,70 +182,9 @@ There is also a group of methods (search, index, find, filter) to aid in retriev
 At it present stage of development, there is not support for memo fields or index fields, though this is planned for future releases, should enough interest arise.
 Version 1.14.2 added `execute` method to execute SQL-like statements returning a cursor object.
 
-For further information see the documentation below.
+For further information see:
 
-## Documentation
-
-### Classes
-
-#### `DBaseFile`
-
-Class to manipulate DBase III database files.
-
-### Dunder and 'private' Methods
-
-- `__init__(self, filename: str)`: Initializes an instance of DBase3File from an existing dbf file.
-- `__del__(self)`: Closes the database file when the instance is destroyed.
-- `__len__(self)`: Returns the number of records in the database, including records marked to be deleted. Allows writing: `len(dbasefileobj)`
-- `__getitem__(self, key)`: Returns a single record or a list of records (if slice notation is used) from the database. Allows: `dbasefileobj[3]` or `dbasefileobj[3:7]`
-- `__iter__(self)`: Returns an iterator over the records in the database. Allows `for record in dbasefileobj: ...`
-- `__str__(self)`: Returns a string representation of the database.
-- `_init(self)`: Initializes the database structure by reading the header and fields. Meant for private use by DBaseFile instances.
-- `def _test_key(self, key)`: Tests if the key is within the valid range of record indexes. Raises an IndexError if the key is out of range. Meant for internal use only.
-
-### Class Methods
-
-- `create(cls, filename: str, fields: List[Tuple[str, FieldType, int, int]])`: Creates a new DBase III database file with the specified fields. Returns a DbaseFile object pointing to newly created dbase file.
-
-### Data Manipulation methods
-
-- `add_record(self, record_data: dict)`: Adds a new record to the database.
-- `update_record(self, index: int, record_data: dict)`: Updates an existing record in the database.
-- `save_record(self, key, record)`: Writes a record (dictionary with field names and field values) to the database at the specified index. Params: key is the index (0 based position in dbf file). record is a dictionary corresponding to an item in the database (i.e: {'id': 1, 'name': "Jane Doe"}) Used internally by `update_record`
-- `del_record(self, key, value = True)`: Marks for deletion the record identified by the index 'key', or unmarks it if `value == False`. To efectively erase the record from disk the deletion must be confirmed by using `dbasefileobj.commit()`
-- `commit(self, filename=None)`: Formerly named `write`, it writes the current file to disk, skipping records marked for deletion. If a filename is provided, other the current filename, saves the database file to the new destination, keeping previous filename as is. Its worth noting that `add_record` and `update_record` commit changes to disk inmediatly, so it's not needed to call `commit` after using them. It won't harm to do it, either.
-
-### Data searching/filtering methods
-
-- `search(self, fieldname, value, start=0, funcname="", compare_function=None)`: Searches for a record with the specified value in the specified field, starting from the specified index, for which the specified comparison function returns True. Returns a tuple with index:int and record:dict
-- `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper for search() with funcname="find". Returns the first record (dictionary) found, or None if no record meeting given criteria is found.
-- `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper for search() with funcname="index". Returns index of the first record found, or -1 if no record meeting given criteria is found.
-- `filter(self, fieldname, value, compare_function=None)`: Returns a list of records (dictionaries) that meet the specified criteria.
-- `execute(self, sql_cmd:str)`: Meant for retrieving data in a custom manner.
-
-### Data listing methods
-
-- `list(self, start=0, stop=None, fieldsep="|", recordsep='\n', records:list=None)`: Returns a list of records from the database, starting at 'start', ending at 'stop' or EOF, having fields separated by 'fieldsep' and records separated by '\n'. If 'records' is not None, the provided list is used instead of retrieving values from the database.
-- `csv(self, start=0, stop=None, records:list = None)`: Wrapper for 'list', using ',' as fieldsep.
-- `table(self, start=0, stop=None, records:list = None)`: Retrieves selected records using ad-hoc format, same as provided by sqlite3 CLI in .table mode.
-- `pretty_table(self, start=0, stop=None, records:list = None)`: Retrieves selected records using ad-hoc format, like `table` but with prettier lines.
-- `lines(self, start=0, stop=None, records:list = None)`: Retrieves selected records with field values aligned to their widths.
-
-Its worth noting that all these last five methods return generators instead of lists, which makes them much lighter in case of bulky recordsets.
-
-### Static Methods (Auxiliary functions for searching/filtering)
-
-- `istartswith(f: str, v: str) -> bool`: Checks if the string `f` starts with the string `v`, ignoring case.
-- `iendswith(f: str, v: str) -> bool`: Checks if the string `f` ends with the string `v`, ignoring case.
-
-### Properties
-
-- 'fields': Retrieves the list of fields from which the database records are assembled. Each field object in the list has a name, type (as per FieldType Enum) and length.
-- 'field_names': Retrieves a list with the name of each field in the database.
-- 'field_types': Retrieves a list with the type of each field in the database.
-- 'field_lengths': Retrieves a list with the length of each field in the database.
-- 'max_field_lengths': Returns the maximum length of the specified field (including length of field name) in the database. Useful for retrieving lines with adjusted width for each field. Internally uses `def max_field_length(self, field)`
-- 'tmax_field_lengths': Same as max_field_lengths, threaded version, in an unsuccessful attemp of accelerating the process. Anyway, it works.
+<a href="docs/pybase3.html">Pybase3 Docs</a>
 
 ## Contributing
 

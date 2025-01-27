@@ -181,70 +181,9 @@ Oltre a ciò, c'è un gruppo di metodi pensati per la manipolazione dei dati (ad
 C'è anche un gruppo di metodi (search, index, find, filter) per aiutare a recuperare i dati selezionati.
 
 Nella fase attuale di sviluppo, non c'è supporto per i campi memo o indice, anche se questo è pianificato per le versioni future, qualora dovesse sorgere abbastanza interesse. La versione 1.14.2 aggiunge il metodo `execute` per eseguire istruzioni SQL, restituendo un oggetto Cursor.
-Per ulteriori informazioni, vedere la documentazione di seguito.
+Per ulteriori informazioni, vedere la documentazione di seguito:
 
-## Documentazione
-
-### Classi
-
-#### `DBaseFile`
-
-Classe per manipolare i file di database DBase III.
-
-### Metodi 'dunder' e 'privati'
-
-- `__init__(self, filename: str)`: Inizializza un'istanza di DBase3File da un file dbf esistente.
-- `__del__(self)`: Chiude il file del database quando l'istanza viene distrutta.
-- `__len__(self)`: Recupera il numero di record nel database, inclusi i record contrassegnati per essere eliminati. Consente la scrittura: `len(dbasefileobj)`
-- `__getitem__(self, key)`: Recupera un singolo record o un elenco di record (se si usa la notazione slice) dal database. Consente: `dbasefileobj[3]` or `dbasefileobj[3:7]`
-- `__iter__(self)`: Recupera un iteratore sui record nel database. Consente `for record in dbasefileobj: ...`
-- `__str__(self)`:  Recupera una rappresentazione testuale del database.
-- `_init(self)`: Iinizializza la struttura del database leggendo l'intestazione e i campi. Pensato per uso privato da parte di istanze DBaseFile.
-- `def _test_key(self, key)`: Verifica se la chiave è compresa nell'intervallo valido degli indici dei record. Genera un IndexError se la chiave è fuori dall'intervallo. Pensato solo per uso interno.
-
-### Metodi di classe.
-
-- `create(cls, filename: str, fields: List[Tuple[str, FieldType, int, int]])`: Crea un nuovo file di database DBase III con i campi specificati. Recupera un oggetto DbaseFile che punta al file dbase appena creato.
-
-### Metodi di manipolazione dei dati
-
-- `add_record(self, record_data: dict)`: Aggiunge un nuovo record al database.
-- `update_record(self, index: int, record_data: dict)`: Aggiorna un record esistente nel database.
-- `save_record(self, key, record)`: Scrive un record (dizionario con nomi di campo e valori di campo) nel database all'indice specificato. Parametri: la chiave è l'indice (posizione basata su 0 nel file dbf). record è un dizionario corrispondente a un elemento nel database(i.e: {'id': 1, 'name': "Jane Doe"}) Utilizzato internamente da `update_record`
-- `del_record(self, key, value = True)`: Contrassegna per l'eliminazione il record identificato dall'indice 'key', o lo deseleziona se `value == False`. Per cancellare efficacemente il record dal disco, l'eliminazione deve essere confermata tramite `dbasefileobj.commit()`
-- `commit(self, filename=None)`: Precedentemente denominato `write`, scrive il file corrente sul disco, saltando i record contrassegnati per l'eliminazione. Se viene fornito un nome file, diverso dal nome file corrente, salva il file del database nella nuova destinazione, mantenendo il nome file precedente così com'è. Vale la pena notare che `add_record` e `update_record` eseguono il commit delle modifiche su disco immediatamente, quindi non è necessario chiamare `commit` dopo averle usate. Non fa male farlo, comunque.
-
-### Metodi di ricerca/filtraggio dei dati
-
-- `search(self, fieldname, value, start=0, funcname="", compare_function=None)`: Cerca un record con il valore specificato nel campo specificato, a partire dall'indice specificato, per il quale la funzione di confronto specificata Recupera True. Recupera una tupla con indice:int e record:dict
-- `find(self, fieldname, value, start=0, compare_function=None)`: Wrapper per search() con funcname="find". Recupera il primo record (dizionario) trovato oppure None se non viene trovato alcun record che soddisfi i criteri specificati.
-- `index(self, fieldname, value, start=0, compare_function=None)`:  Wrapper per search() con funcname="index". Recupera l'indice del primo record trovato, oppure -1 se non viene trovato alcun record che soddisfi i criteri specificati.
-- `filter(self, fieldname, value, compare_function=None)`:  Recupera un elenco di record (dizionari) che soddisfano i criteri specificati.
-- `execute(self, sql_cmd:str)`: progettato per recuperare i dati in modo personalizzato, con query SQL.
-
-### Metodi di elencazione dei dati
-
-- `list(self, start=0, stop=None, fieldsep="|", recordsep='\n', records:list=None)`: restituisce un elenco di record dal database, iniziando da 'start', terminando da 'stop' o EOF, con campi separati da 'fieldsep' e record separati da '\n'. Se 'records' non è None, viene utilizzato l'elenco fornito invece di recuperare i valori dal database.
-- `csv(self, start=0, stop=None, records:list = None)`: wrapper per 'list', utilizzando ',' come fieldsep.
-- `table(self, start=0, stop=None, records:list = None)`: recupera i record selezionati utilizzando il formato ad hoc, lo stesso fornito da sqlite3 CLI in modalità .table.
-- `pretty_table(self, start=0, stop=None, records:list = None)`: Recupera i record selezionati utilizzando un formato ad hoc, come `table` ma con linee più graziose.
-- `lines(self, start=0, stop=None, records:list = None)`: Recupera i record selezionati con i valori dei campi allineati alle loro larghezze.
-
-Vale la pena notare che tutti questi ultimi cinque metodi restituiscono generatori anziché elenchi, il che li rende molto più leggeri in caso di recordset ingombranti.
-
-### Metodi statici (funzioni ausiliarie per la ricerca/filtraggio)
-
-- `istartswith(f: str, v: str) -> bool`: Controlla se la stringa `f` inizia con la stringa `v`, ignorando la distinzione tra maiuscole e minuscole.
-- `iendswith(f: str, v: str) -> bool`: Controlla se la stringa `f` termina con la stringa `v`, ignorando la distinzione tra maiuscole e minuscole.
-
-### Proprietà
-
-- 'fields': Recupera l'elenco dei campi da cui vengono assemblati i record del database. Ogni oggetto campo nell'elenco ha un nome, un tipo (come da FieldType Enum) e una lunghezza.
-- 'field_names': Recupera un elenco con il nome di ogni campo nel database.
-- 'field_types': Recupera un elenco con il tipo di ogni campo nel database.
-- 'field_lengths': Recupera un elenco con la lunghezza di ogni campo nel database.
-- 'max_field_lengths': restituisce la lunghezza massima del campo specificato (inclusa la lunghezza del nome del campo) nel database. Utile per recuperare righe con larghezza regolata per ogni campo. Utilizza internamente `def max_field_length(self, field)`
-- 'tmax_field_lengths': uguale a max_field_lengths, versione thread, in un tentativo non riuscito di accelerare il processo. In ogni caso, funziona.
+<a href="docs/pybase3.html">Pybase3 Docs</a>
 
 ## Contributi
 
