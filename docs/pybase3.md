@@ -2,14 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Python: package pybase3</title>
+## Python: package pybase3
 
 </head><body>
 
-<table class="heading">
-<tr class="heading-text decor">
-<td class="title">&nbsp;<br><strong class="title">pybase3</strong> (version 1.98.11)</td>
-<td class="extra"><a href=".">index</a><br><a href="file:/home/ernesto/.local/lib/python3.11/site-packages/pybase3/__init__.py">/home/ernesto/.local/lib/python3.11/site-packages/pybase3/__init__.py</a></td></tr></table>
     <p><span class="code">pybase3<br>
 &nbsp;<br>
 This&nbsp;module&nbsp;provides&nbsp;a&nbsp;class&nbsp;to&nbsp;manipulate&nbsp;DBase&nbsp;III&nbsp;database&nbsp;files.<br>
