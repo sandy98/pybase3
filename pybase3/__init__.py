@@ -7,7 +7,7 @@ It allows reading, writing, adding, updating and deleting records in the databas
 Includes classes Connection and Cursor to interact with the database in a Python DB-API 2.0 compliant way. 
 
 Classes:
-    DBaseFile (Main class)
+    DbaseFile (Main class)
     DbaseHeader
     DbaseField
     Record
@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.98.10"
+__version__ = "1.98.11"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
