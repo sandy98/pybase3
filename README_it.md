@@ -183,7 +183,7 @@ C'è anche un gruppo di metodi (search, index, find, filter) per aiutare a recup
 Nella fase attuale di sviluppo, non c'è supporto per i campi memo o indice, anche se questo è pianificato per le versioni future, qualora dovesse sorgere abbastanza interesse. La versione 1.14.2 aggiunge il metodo `execute` per eseguire istruzioni SQL, restituendo un oggetto Cursor.
 Per ulteriori informazioni, vedere la documentazione di seguito:
 
-<a href="docs/pybase3.html">Pybase3 Docs</a>
+`<a href="docs/pybase3.md">`Pybase3 Docs `</a>`
 
 ## Contributi
 

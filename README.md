@@ -184,7 +184,7 @@ Version 1.14.2 added `execute` method to execute SQL-like statements returning a
 
 For further information see:
 
-<a href="docs/pybase3.html">Pybase3 Docs</a>
+<a href="docs/pybase3.md">Pybase3 Docs</a>
 
 ## Contributing
 

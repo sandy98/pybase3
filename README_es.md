@@ -185,7 +185,7 @@ La versión 1.14.2 incorpora el método `execute` para ejecutar instrucciones SQ
 
 Para obtener más información, consulte la documentación a continuación:
 
-<a href="docs/pybase3.html">Pybase3 Docs</a>
+<a href="docs/pybase3.md">Pybase3 Docs</a>
 
 ## Contribuciones
 
