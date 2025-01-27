@@ -49,15 +49,15 @@ CLI&nbsp;scripts:<br>
 <td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Package Contents</strong></td></tr>
     
 <tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
-<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="pybase3.__main__.html">__main__</a><br>
-<a href="pybase3.dbase3.html">dbase3</a><br>
-<a href="pybase3.dbfquery.html">dbfquery</a><br>
-</td><td class="multicolumn"><a href="pybase3.dbfview.html">dbfview</a><br>
-<a href="pybase3.header_reader.html">header_reader</a><br>
-<a href="pybase3.hexreader.html">hexreader</a><br>
-</td><td class="multicolumn"><a href="pybase3.sqlparser.html">sqlparser</a><br>
-<a href="pybase3.test.html">test</a><br>
-<a href="pybase3.utils.html">utils</a><br>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="pybase3.__main__.md">__main__</a><br>
+<a href="pybase3.dbase3.md">dbase3</a><br>
+<a href="pybase3.dbfquery.md">dbfquery</a><br>
+</td><td class="multicolumn"><a href="pybase3.dbfview.md">dbfview</a><br>
+<a href="pybase3.header_reader.md">header_reader</a><br>
+<a href="pybase3.hexreader.md">hexreader</a><br>
+</td><td class="multicolumn"><a href="pybase3.sqlparser.md">sqlparser</a><br>
+<a href="pybase3.test.md">test</a><br>
+<a href="pybase3.utils.md">utils</a><br>
 </td><td class="multicolumn"></td></tr></table></td></tr></table><p>
 <table class="section">
 <tr class="decor index-decor heading-text">
@@ -65,44 +65,44 @@ CLI&nbsp;scripts:<br>
     
 <tr><td class="decor index-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
 <td class="singlecolumn"><dl>
-<dt class="heading-text"><a href="builtins.html#object">builtins.object</a>
+<dt class="heading-text"><a href="builtins.md#object">builtins.object</a>
 </dt><dd>
 <dl>
-<dt class="heading-text"><a href="pybase3.html#Connection">Connection</a>
-</dt><dt class="heading-text"><a href="pybase3.html#Cursor">Cursor</a>
-</dt><dt class="heading-text"><a href="pybase3.html#DbaseField">DbaseField</a>
-</dt><dt class="heading-text"><a href="pybase3.html#DbaseFile">DbaseFile</a>
-</dt><dt class="heading-text"><a href="pybase3.html#DbaseHeader">DbaseHeader</a>
+<dt class="heading-text"><a href="pybase3.md#Connection">Connection</a>
+</dt><dt class="heading-text"><a href="pybase3.md#Cursor">Cursor</a>
+</dt><dt class="heading-text"><a href="pybase3.md#DbaseField">DbaseField</a>
+</dt><dt class="heading-text"><a href="pybase3.md#DbaseFile">DbaseFile</a>
+</dt><dt class="heading-text"><a href="pybase3.md#DbaseHeader">DbaseHeader</a>
 </dt></dl>
 </dd>
-<dt class="heading-text"><a href="enum.html#Enum">enum.Enum</a>(<a href="builtins.html#object">builtins.object</a>)
+<dt class="heading-text"><a href="enum.md#Enum">enum.Enum</a>(<a href="builtins.md#object">builtins.object</a>)
 </dt><dd>
 <dl>
-<dt class="heading-text"><a href="pybase3.html#BoxType">BoxType</a>
-</dt><dt class="heading-text"><a href="pybase3.html#FieldType">FieldType</a>
+<dt class="heading-text"><a href="pybase3.md#BoxType">BoxType</a>
+</dt><dt class="heading-text"><a href="pybase3.md#FieldType">FieldType</a>
 </dt></dl>
 </dd>
-<dt class="heading-text"><a href="pybase3.utils.html#SmartDict">pybase3.utils.SmartDict</a>(<a href="builtins.html#dict">builtins.dict</a>)
+<dt class="heading-text"><a href="pybase3.utils.md#SmartDict">pybase3.utils.SmartDict</a>(<a href="builtins.md#dict">builtins.dict</a>)
 </dt><dd>
 <dl>
-<dt class="heading-text"><a href="pybase3.html#Record">Record</a>
+<dt class="heading-text"><a href="pybase3.md#Record">Record</a>
 </dt></dl>
 </dd>
 </dl>
  <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="BoxType">class <strong>BoxType</strong></a>(<a href="enum.html#Enum">enum.Enum</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="BoxType">class <strong>BoxType</strong></a>(<a href="enum.md#Enum">enum.Enum</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#BoxType">BoxType</a>(value,&nbsp;names=None,&nbsp;*,&nbsp;module=None,&nbsp;qualname=None,&nbsp;type=None,&nbsp;start=1,&nbsp;boundary=None)<br>
 &nbsp;<br>
-<a href="enum.html#Enum">Enum</a>&nbsp;for&nbsp;box&nbsp;drawing&nbsp;characters.<br>&nbsp;</span></td></tr>
+<a href="enum.md#Enum">Enum</a>&nbsp;for&nbsp;box&nbsp;drawing&nbsp;characters.<br>&nbsp;</span></td></tr>
 <tr><td>&nbsp;</td>
 <td class="singlecolumn"><dl><dt>Method resolution order:</dt>
-<dd><a href="pybase3.html#BoxType">BoxType</a></dd>
-<dd><a href="enum.html#Enum">enum.Enum</a></dd>
-<dd><a href="builtins.html#object">builtins.object</a></dd>
+<dd><a href="pybase3.md#BoxType">BoxType</a></dd>
+<dd><a href="enum.md#Enum">enum.Enum</a></dd>
+<dd><a href="builtins.md#object">builtins.object</a></dd>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
@@ -129,7 +129,7 @@ Data and other attributes defined here:<br>
 <dl><dt><strong>VERT</strong> = │</dl>
 
 <hr>
-Data descriptors inherited from <a href="enum.html#Enum">enum.Enum</a>:<br>
+Data descriptors inherited from <a href="enum.md#Enum">enum.Enum</a>:<br>
 <dl><dt><strong>name</strong></dt>
 <dd><span class="code">The&nbsp;name&nbsp;of&nbsp;the&nbsp;Enum&nbsp;member.</span></dd>
 </dl>
@@ -137,21 +137,21 @@ Data descriptors inherited from <a href="enum.html#Enum">enum.Enum</a>:<br>
 <dd><span class="code">The&nbsp;value&nbsp;of&nbsp;the&nbsp;Enum&nbsp;member.</span></dd>
 </dl>
 <hr>
-Methods inherited from <a href="enum.html#EnumType">enum.EnumType</a>:<br>
-<dl><dt><a name="BoxType-__contains__"><strong>__contains__</strong></a>(member)<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;True&nbsp;if&nbsp;member&nbsp;is&nbsp;a&nbsp;member&nbsp;of&nbsp;this&nbsp;enum<br>
+Methods inherited from <a href="enum.md#EnumType">enum.EnumType</a>:<br>
+<dl><dt><a name="BoxType-__contains__"><strong>__contains__</strong></a>(member)<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;True&nbsp;if&nbsp;member&nbsp;is&nbsp;a&nbsp;member&nbsp;of&nbsp;this&nbsp;enum<br>
 raises&nbsp;TypeError&nbsp;if&nbsp;member&nbsp;is&nbsp;not&nbsp;an&nbsp;enum&nbsp;member<br>
 &nbsp;<br>
 note:&nbsp;in&nbsp;3.12&nbsp;TypeError&nbsp;will&nbsp;no&nbsp;longer&nbsp;be&nbsp;raised,&nbsp;and&nbsp;True&nbsp;will&nbsp;also&nbsp;be<br>
 returned&nbsp;if&nbsp;member&nbsp;is&nbsp;the&nbsp;value&nbsp;of&nbsp;a&nbsp;member&nbsp;in&nbsp;this&nbsp;enum</span></dd></dl>
 
-<dl><dt><a name="BoxType-__getitem__"><strong>__getitem__</strong></a>(name)<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;member&nbsp;matching&nbsp;`name`.</span></dd></dl>
+<dl><dt><a name="BoxType-__getitem__"><strong>__getitem__</strong></a>(name)<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;member&nbsp;matching&nbsp;`name`.</span></dd></dl>
 
-<dl><dt><a name="BoxType-__iter__"><strong>__iter__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;members&nbsp;in&nbsp;definition&nbsp;order.</span></dd></dl>
+<dl><dt><a name="BoxType-__iter__"><strong>__iter__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;members&nbsp;in&nbsp;definition&nbsp;order.</span></dd></dl>
 
-<dl><dt><a name="BoxType-__len__"><strong>__len__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;number&nbsp;of&nbsp;members&nbsp;(no&nbsp;aliases)</span></dd></dl>
+<dl><dt><a name="BoxType-__len__"><strong>__len__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;number&nbsp;of&nbsp;members&nbsp;(no&nbsp;aliases)</span></dd></dl>
 
 <hr>
-Readonly properties inherited from <a href="enum.html#EnumType">enum.EnumType</a>:<br>
+Readonly properties inherited from <a href="enum.md#EnumType">enum.EnumType</a>:<br>
 <dl><dt><strong>__members__</strong></dt>
 <dd><span class="code">Returns&nbsp;a&nbsp;mapping&nbsp;of&nbsp;member&nbsp;name-&gt;value.<br>
 &nbsp;<br>
@@ -161,7 +161,7 @@ is&nbsp;a&nbsp;read-only&nbsp;view&nbsp;of&nbsp;the&nbsp;internal&nbsp;mapping.<
 </td></tr></table> <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="Connection">class <strong>Connection</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="Connection">class <strong>Connection</strong></a>(<a href="builtins.md#object">builtins.object</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#Connection">Connection</a>(dirname:&nbsp;str)<br>
@@ -173,19 +173,19 @@ by&nbsp;the&nbsp;Python&nbsp;DB&nbsp;API&nbsp;2.0&nbsp;specification<br>&nbsp;</
 <td class="singlecolumn">Methods defined here:<br>
 <dl><dt><a name="Connection-Cursor"><strong>Cursor</strong></a>(self)</dt><dd><span class="code">Method&nbsp;included&nbsp;in&nbsp;order&nbsp;to&nbsp;comply&nbsp;with&nbsp;the&nbsp;Python&nbsp;DB&nbsp;API&nbsp;2.0&nbsp;specification.<br>
 &nbsp;<br>
-:returns:&nbsp;<a href="#Cursor">Cursor</a>&nbsp;<a href="builtins.html#object">object</a>&nbsp;for&nbsp;database&nbsp;operations.</span></dd></dl>
+:returns:&nbsp;<a href="#Cursor">Cursor</a>&nbsp;<a href="builtins.md#object">object</a>&nbsp;for&nbsp;database&nbsp;operations.</span></dd></dl>
 
-<dl><dt><a name="Connection-__init__"><strong>__init__</strong></a>(self, dirname: str)</dt><dd><span class="code">Initializes&nbsp;the&nbsp;<a href="#Connection">Connection</a>&nbsp;<a href="builtins.html#object">object</a>.<br>
+<dl><dt><a name="Connection-__init__"><strong>__init__</strong></a>(self, dirname: str)</dt><dd><span class="code">Initializes&nbsp;the&nbsp;<a href="#Connection">Connection</a>&nbsp;<a href="builtins.md#object">object</a>.<br>
 &nbsp;<br>
 :param&nbsp;dirname:&nbsp;Directory&nbsp;name&nbsp;where&nbsp;the&nbsp;database&nbsp;files&nbsp;are&nbsp;located.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adds&nbsp;the&nbsp;non-standard&nbsp;'dirname'&nbsp;attribute&nbsp;to&nbsp;the&nbsp;<a href="#Connection">Connection</a>&nbsp;<a href="builtins.html#object">object</a>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Adds&nbsp;the&nbsp;non-standard&nbsp;'dirname'&nbsp;attribute&nbsp;to&nbsp;the&nbsp;<a href="#Connection">Connection</a>&nbsp;<a href="builtins.md#object">object</a>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;as&nbsp;well&nbsp;as&nbsp;the&nbsp;'name'&nbsp;attribute&nbsp;with&nbsp;the&nbsp;base&nbsp;name&nbsp;of&nbsp;the&nbsp;directory,&nbsp;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;'tablenames'&nbsp;attribute&nbsp;with&nbsp;the&nbsp;list&nbsp;of&nbsp;table&nbsp;names.</span></dd></dl>
 
 <dl><dt><a name="Connection-execute"><strong>execute</strong></a>(self, sql: str, args=[]) -&gt; &lt;function Connection.Cursor at 0x7efc77ba2520&gt;</dt><dd><span class="code">Executes&nbsp;a&nbsp;SQL&nbsp;command&nbsp;on&nbsp;the&nbsp;database&nbsp;file&nbsp;specified&nbsp;within&nbsp;it.<br>
 &nbsp;<br>
 :params&nbsp;sql:&nbsp;SQL&nbsp;command&nbsp;to&nbsp;execute.<br>
-:returns:&nbsp;<a href="#Cursor">Cursor</a>&nbsp;<a href="builtins.html#object">object</a>&nbsp;with&nbsp;the&nbsp;results&nbsp;of&nbsp;the&nbsp;SQL&nbsp;command.</span></dd></dl>
+:returns:&nbsp;<a href="#Cursor">Cursor</a>&nbsp;<a href="builtins.md#object">object</a>&nbsp;with&nbsp;the&nbsp;results&nbsp;of&nbsp;the&nbsp;SQL&nbsp;command.</span></dd></dl>
 
 <hr>
 Readonly properties defined here:<br>
@@ -208,7 +208,7 @@ Data descriptors defined here:<br>
 </td></tr></table> <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="Cursor">class <strong>Cursor</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="Cursor">class <strong>Cursor</strong></a>(<a href="builtins.md#object">builtins.object</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#Cursor">Cursor</a>(description:&nbsp;List[Tuple[str,&nbsp;str,&nbsp;str,&nbsp;int,&nbsp;int]]&nbsp;=&nbsp;None,&nbsp;records:&nbsp;List[pybase3.<a href="#Record">Record</a>]&nbsp;=&nbsp;None,&nbsp;**kwargs)<br>
@@ -257,7 +257,7 @@ Data and other attributes defined here:<br>
 </td></tr></table> <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="DbaseField">class <strong>DbaseField</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="DbaseField">class <strong>DbaseField</strong></a>(<a href="builtins.md#object">builtins.object</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#DbaseField">DbaseField</a>(name:&nbsp;str&nbsp;=&nbsp;'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',&nbsp;type:&nbsp;str&nbsp;=&nbsp;'C',&nbsp;address:&nbsp;int&nbsp;=&nbsp;0,&nbsp;length:&nbsp;int&nbsp;=&nbsp;0,&nbsp;decimal:&nbsp;int&nbsp;=&nbsp;0,&nbsp;reserved:&nbsp;bytes&nbsp;=&nbsp;b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')&nbsp;-&amp;gt;&nbsp;None<br>
@@ -273,9 +273,9 @@ Class&nbsp;to&nbsp;represent&nbsp;a&nbsp;field&nbsp;(aka&nbsp;column)&nbsp;in&nb
 
 <dl><dt><a name="DbaseField-__repr__"><strong>__repr__</strong></a>(self)</dt><dd><span class="code">Return&nbsp;repr(self).</span></dd></dl>
 
-<dl><dt><a name="DbaseField-load_bytes"><strong>load_bytes</strong></a>(self, bytes)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;read&nbsp;from&nbsp;disk)&nbsp;into&nbsp;a&nbsp;<a href="#DbaseField">DbaseField</a>&nbsp;<a href="builtins.html#object">object</a>.</span></dd></dl>
+<dl><dt><a name="DbaseField-load_bytes"><strong>load_bytes</strong></a>(self, bytes)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;read&nbsp;from&nbsp;disk)&nbsp;into&nbsp;a&nbsp;<a href="#DbaseField">DbaseField</a>&nbsp;<a href="builtins.md#object">object</a>.</span></dd></dl>
 
-<dl><dt><a name="DbaseField-to_bytes"><strong>to_bytes</strong></a>(self)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;<a href="#DbaseField">DbaseField</a>&nbsp;<a href="builtins.html#object">object</a>&nbsp;into&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;to&nbsp;write&nbsp;to&nbsp;disk).</span></dd></dl>
+<dl><dt><a name="DbaseField-to_bytes"><strong>to_bytes</strong></a>(self)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;<a href="#DbaseField">DbaseField</a>&nbsp;<a href="builtins.md#object">object</a>&nbsp;into&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;to&nbsp;write&nbsp;to&nbsp;disk).</span></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -317,7 +317,7 @@ Data and other attributes defined here:<br>
 </td></tr></table> <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="DbaseFile">class <strong>DbaseFile</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="DbaseFile">class <strong>DbaseFile</strong></a>(<a href="builtins.md#object">builtins.object</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#DbaseFile">DbaseFile</a>(filename)<br>
@@ -379,7 +379,7 @@ allowing&nbsp;notation&nbsp;like&nbsp;'for&nbsp;record&nbsp;in&nbsp;dbf'.</span>
 &nbsp;<br>
 :param&nbsp;record_data:&nbsp;SmartDictionary&nbsp;with&nbsp;the&nbsp;new&nbsp;record's&nbsp;data.</span></dd></dl>
 
-<dl><dt><a name="DbaseFile-as_cursor"><strong>as_cursor</strong></a>(self, records: List[pybase3.Record] = None, fields: List[pybase3.DbaseField] = None, start: int = 0, stop: int = None, step: int = 1)</dt><dd><span class="code">Returns&nbsp;a&nbsp;cursor&nbsp;<a href="builtins.html#object">object</a>&nbsp;for&nbsp;the&nbsp;database.</span></dd></dl>
+<dl><dt><a name="DbaseFile-as_cursor"><strong>as_cursor</strong></a>(self, records: List[pybase3.Record] = None, fields: List[pybase3.DbaseField] = None, start: int = 0, stop: int = None, step: int = 1)</dt><dd><span class="code">Returns&nbsp;a&nbsp;cursor&nbsp;<a href="builtins.md#object">object</a>&nbsp;for&nbsp;the&nbsp;database.</span></dd></dl>
 
 <dl><dt><a name="DbaseFile-commit"><strong>commit</strong></a>(self, filename=None)</dt><dd><span class="code">Writes&nbsp;the&nbsp;database&nbsp;to&nbsp;a&nbsp;file.&nbsp;<br>
 If&nbsp;no&nbsp;filename&nbsp;is&nbsp;specified,&nbsp;the&nbsp;original&nbsp;file&nbsp;is&nbsp;overwritten.<br>
@@ -397,7 +397,7 @@ To&nbsp;effectively&nbsp;delete&nbsp;the&nbsp;record,&nbsp;use&nbsp;the&nbsp;<a 
 &nbsp;<br>
 :param&nbsp;sql_cmd:&nbsp;SQL&nbsp;command&nbsp;to&nbsp;execute<br>
 :param&nbsp;args:&nbsp;List&nbsp;of&nbsp;arguments&nbsp;to&nbsp;be&nbsp;passed&nbsp;to&nbsp;the&nbsp;SQL&nbsp;command.<br>
-:returns&nbsp;<a href="#Cursor">Cursor</a>&nbsp;<a href="builtins.html#object">object</a>&nbsp;with&nbsp;the&nbsp;results&nbsp;of&nbsp;the&nbsp;SQL&nbsp;command.</span></dd></dl>
+:returns&nbsp;<a href="#Cursor">Cursor</a>&nbsp;<a href="builtins.md#object">object</a>&nbsp;with&nbsp;the&nbsp;results&nbsp;of&nbsp;the&nbsp;SQL&nbsp;command.</span></dd></dl>
 
 <dl><dt><a name="DbaseFile-export_to"><strong>export_to</strong></a>(self, desttype: str = 'sqlite3', filename: str = None)</dt><dd><span class="code">Exports&nbsp;the&nbsp;database&nbsp;to&nbsp;a&nbsp;destination&nbsp;of&nbsp;the&nbsp;specified&nbsp;type.</span></dd></dl>
 
@@ -415,7 +415,7 @@ To&nbsp;effectively&nbsp;delete&nbsp;the&nbsp;record,&nbsp;use&nbsp;the&nbsp;<a 
 <dl><dt><a name="DbaseFile-find"><strong>find</strong></a>(self, fieldname, value, start=0, compare_function=None)</dt><dd><span class="code">Wrapper&nbsp;for&nbsp;<a href="#DbaseFile-search">search</a>()&nbsp;with&nbsp;funcname="find".<br>
 Returns&nbsp;the&nbsp;first&nbsp;record&nbsp;(dictionary)&nbsp;found,&nbsp;or&nbsp;None&nbsp;if&nbsp;no&nbsp;record&nbsp;meeting&nbsp;given&nbsp;criteria&nbsp;is&nbsp;found.</span></dd></dl>
 
-<dl><dt><a name="DbaseFile-get_field"><strong>get_field</strong></a>(self, fieldname)</dt><dd><span class="code">Returns&nbsp;the&nbsp;field&nbsp;<a href="builtins.html#object">object</a>&nbsp;with&nbsp;the&nbsp;specified&nbsp;name,&nbsp;case&nbsp;sensitive.</span></dd></dl>
+<dl><dt><a name="DbaseFile-get_field"><strong>get_field</strong></a>(self, fieldname)</dt><dd><span class="code">Returns&nbsp;the&nbsp;field&nbsp;<a href="builtins.md#object">object</a>&nbsp;with&nbsp;the&nbsp;specified&nbsp;name,&nbsp;case&nbsp;sensitive.</span></dd></dl>
 
 <dl><dt><a name="DbaseFile-get_record"><strong>get_record</strong></a>(self, key)</dt><dd><span class="code">Retrieves&nbsp;a&nbsp;record&nbsp;(dictionary&nbsp;with&nbsp;field&nbsp;names&nbsp;and&nbsp;field&nbsp;values)&nbsp;from&nbsp;the&nbsp;database.<br>
 Used&nbsp;internally&nbsp;by&nbsp;the&nbsp;__getitem__&nbsp;method.</span></dd></dl>
@@ -469,13 +469,13 @@ fields&nbsp;'deleted'&nbsp;and&nbsp;'metadata'&nbsp;stripped.</span></dd></dl>
 
 <hr>
 Class methods defined here:<br>
-<dl><dt><a name="DbaseFile-create"><strong>create</strong></a>(filename: str, fields: List[Tuple[str, str, int, int]])<span class="grey"><span class="heading-text"> from <a href="builtins.html#type">builtins.type</a></span></span></dt><dd><span class="code">Creates&nbsp;a&nbsp;new&nbsp;DBase&nbsp;III&nbsp;database&nbsp;file&nbsp;with&nbsp;the&nbsp;specified&nbsp;fields.<br>
+<dl><dt><a name="DbaseFile-create"><strong>create</strong></a>(filename: str, fields: List[Tuple[str, str, int, int]])<span class="grey"><span class="heading-text"> from <a href="builtins.md#type">builtins.type</a></span></span></dt><dd><span class="code">Creates&nbsp;a&nbsp;new&nbsp;DBase&nbsp;III&nbsp;database&nbsp;file&nbsp;with&nbsp;the&nbsp;specified&nbsp;fields.<br>
 &nbsp;<br>
 :param&nbsp;filename:&nbsp;Name&nbsp;of&nbsp;the&nbsp;file&nbsp;to&nbsp;create.<br>
 :param&nbsp;fields:&nbsp;List&nbsp;of&nbsp;tuples&nbsp;describing&nbsp;the&nbsp;fields&nbsp;(name,&nbsp;type,&nbsp;length,&nbsp;decimals).<br>
 :raises&nbsp;FileExistsError:&nbsp;If&nbsp;the&nbsp;file&nbsp;already&nbsp;exists.</span></dd></dl>
 
-<dl><dt><a name="DbaseFile-import_from"><strong>import_from</strong></a>(filename: str, tablename: str = None, stype: str = 'sqlite3', exportname: str = None)<span class="grey"><span class="heading-text"> from <a href="builtins.html#type">builtins.type</a></span></span></dt><dd><span class="code">Imports&nbsp;a&nbsp;database&nbsp;from&nbsp;a&nbsp;source&nbsp;of&nbsp;the&nbsp;specified&nbsp;type.</span></dd></dl>
+<dl><dt><a name="DbaseFile-import_from"><strong>import_from</strong></a>(filename: str, tablename: str = None, stype: str = 'sqlite3', exportname: str = None)<span class="grey"><span class="heading-text"> from <a href="builtins.md#type">builtins.type</a></span></span></dt><dd><span class="code">Imports&nbsp;a&nbsp;database&nbsp;from&nbsp;a&nbsp;source&nbsp;of&nbsp;the&nbsp;specified&nbsp;type.</span></dd></dl>
 
 <hr>
 Static methods defined here:<br>
@@ -538,7 +538,7 @@ Data and other attributes defined here:<br>
 </td></tr></table> <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="DbaseHeader">class <strong>DbaseHeader</strong></a>(<a href="builtins.html#object">builtins.object</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="DbaseHeader">class <strong>DbaseHeader</strong></a>(<a href="builtins.md#object">builtins.object</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#DbaseHeader">DbaseHeader</a>(version:&nbsp;int&nbsp;=&nbsp;3,&nbsp;year:&nbsp;int&nbsp;=&nbsp;25,&nbsp;month:&nbsp;int&nbsp;=&nbsp;1,&nbsp;day:&nbsp;int&nbsp;=&nbsp;27,&nbsp;records:&nbsp;int&nbsp;=&nbsp;0,&nbsp;header_size:&nbsp;int&nbsp;=&nbsp;0,&nbsp;record_size:&nbsp;int&nbsp;=&nbsp;0,&nbsp;reserved:&nbsp;bytes&nbsp;=&nbsp;b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')&nbsp;-&amp;gt;&nbsp;None<br>
@@ -554,9 +554,9 @@ Class&nbsp;to&nbsp;represent&nbsp;the&nbsp;header&nbsp;of&nbsp;a&nbsp;DBase&nbsp
 
 <dl><dt><a name="DbaseHeader-__repr__"><strong>__repr__</strong></a>(self)</dt><dd><span class="code">Return&nbsp;repr(self).</span></dd></dl>
 
-<dl><dt><a name="DbaseHeader-load_bytes"><strong>load_bytes</strong></a>(self, bytes)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;read&nbsp;from&nbsp;disk)&nbsp;into&nbsp;a&nbsp;<a href="#DbaseHeader">DbaseHeader</a>&nbsp;<a href="builtins.html#object">object</a>.</span></dd></dl>
+<dl><dt><a name="DbaseHeader-load_bytes"><strong>load_bytes</strong></a>(self, bytes)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;read&nbsp;from&nbsp;disk)&nbsp;into&nbsp;a&nbsp;<a href="#DbaseHeader">DbaseHeader</a>&nbsp;<a href="builtins.md#object">object</a>.</span></dd></dl>
 
-<dl><dt><a name="DbaseHeader-to_bytes"><strong>to_bytes</strong></a>(self)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;<a href="#DbaseHeader">DbaseHeader</a>&nbsp;<a href="builtins.html#object">object</a>&nbsp;into&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;to&nbsp;write&nbsp;to&nbsp;disk).</span></dd></dl>
+<dl><dt><a name="DbaseHeader-to_bytes"><strong>to_bytes</strong></a>(self)</dt><dd><span class="code">Transforms&nbsp;a&nbsp;<a href="#DbaseHeader">DbaseHeader</a>&nbsp;<a href="builtins.md#object">object</a>&nbsp;into&nbsp;a&nbsp;byte&nbsp;string&nbsp;(usually&nbsp;to&nbsp;write&nbsp;to&nbsp;disk).</span></dd></dl>
 
 <hr>
 Data descriptors defined here:<br>
@@ -597,17 +597,17 @@ Data and other attributes defined here:<br>
 </td></tr></table> <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="FieldType">class <strong>FieldType</strong></a>(<a href="enum.html#Enum">enum.Enum</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="FieldType">class <strong>FieldType</strong></a>(<a href="enum.md#Enum">enum.Enum</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#FieldType">FieldType</a>(value,&nbsp;names=None,&nbsp;*,&nbsp;module=None,&nbsp;qualname=None,&nbsp;type=None,&nbsp;start=1,&nbsp;boundary=None)<br>
 &nbsp;<br>
-<a href="enum.html#Enum">Enum</a>&nbsp;for&nbsp;dBase&nbsp;III&nbsp;field&nbsp;types.<br>&nbsp;</span></td></tr>
+<a href="enum.md#Enum">Enum</a>&nbsp;for&nbsp;dBase&nbsp;III&nbsp;field&nbsp;types.<br>&nbsp;</span></td></tr>
 <tr><td>&nbsp;</td>
 <td class="singlecolumn"><dl><dt>Method resolution order:</dt>
-<dd><a href="pybase3.html#FieldType">FieldType</a></dd>
-<dd><a href="enum.html#Enum">enum.Enum</a></dd>
-<dd><a href="builtins.html#object">builtins.object</a></dd>
+<dd><a href="pybase3.md#FieldType">FieldType</a></dd>
+<dd><a href="enum.md#Enum">enum.Enum</a></dd>
+<dd><a href="builtins.md#object">builtins.object</a></dd>
 </dl>
 <hr>
 Data and other attributes defined here:<br>
@@ -624,7 +624,7 @@ Data and other attributes defined here:<br>
 <dl><dt><strong>NUMERIC</strong> = N</dl>
 
 <hr>
-Data descriptors inherited from <a href="enum.html#Enum">enum.Enum</a>:<br>
+Data descriptors inherited from <a href="enum.md#Enum">enum.Enum</a>:<br>
 <dl><dt><strong>name</strong></dt>
 <dd><span class="code">The&nbsp;name&nbsp;of&nbsp;the&nbsp;Enum&nbsp;member.</span></dd>
 </dl>
@@ -632,21 +632,21 @@ Data descriptors inherited from <a href="enum.html#Enum">enum.Enum</a>:<br>
 <dd><span class="code">The&nbsp;value&nbsp;of&nbsp;the&nbsp;Enum&nbsp;member.</span></dd>
 </dl>
 <hr>
-Methods inherited from <a href="enum.html#EnumType">enum.EnumType</a>:<br>
-<dl><dt><a name="FieldType-__contains__"><strong>__contains__</strong></a>(member)<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;True&nbsp;if&nbsp;member&nbsp;is&nbsp;a&nbsp;member&nbsp;of&nbsp;this&nbsp;enum<br>
+Methods inherited from <a href="enum.md#EnumType">enum.EnumType</a>:<br>
+<dl><dt><a name="FieldType-__contains__"><strong>__contains__</strong></a>(member)<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;True&nbsp;if&nbsp;member&nbsp;is&nbsp;a&nbsp;member&nbsp;of&nbsp;this&nbsp;enum<br>
 raises&nbsp;TypeError&nbsp;if&nbsp;member&nbsp;is&nbsp;not&nbsp;an&nbsp;enum&nbsp;member<br>
 &nbsp;<br>
 note:&nbsp;in&nbsp;3.12&nbsp;TypeError&nbsp;will&nbsp;no&nbsp;longer&nbsp;be&nbsp;raised,&nbsp;and&nbsp;True&nbsp;will&nbsp;also&nbsp;be<br>
 returned&nbsp;if&nbsp;member&nbsp;is&nbsp;the&nbsp;value&nbsp;of&nbsp;a&nbsp;member&nbsp;in&nbsp;this&nbsp;enum</span></dd></dl>
 
-<dl><dt><a name="FieldType-__getitem__"><strong>__getitem__</strong></a>(name)<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;member&nbsp;matching&nbsp;`name`.</span></dd></dl>
+<dl><dt><a name="FieldType-__getitem__"><strong>__getitem__</strong></a>(name)<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;member&nbsp;matching&nbsp;`name`.</span></dd></dl>
 
-<dl><dt><a name="FieldType-__iter__"><strong>__iter__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;members&nbsp;in&nbsp;definition&nbsp;order.</span></dd></dl>
+<dl><dt><a name="FieldType-__iter__"><strong>__iter__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;members&nbsp;in&nbsp;definition&nbsp;order.</span></dd></dl>
 
-<dl><dt><a name="FieldType-__len__"><strong>__len__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.html#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;number&nbsp;of&nbsp;members&nbsp;(no&nbsp;aliases)</span></dd></dl>
+<dl><dt><a name="FieldType-__len__"><strong>__len__</strong></a>()<span class="grey"><span class="heading-text"> from <a href="enum.md#EnumType">enum.EnumType</a></span></span></dt><dd><span class="code">Return&nbsp;the&nbsp;number&nbsp;of&nbsp;members&nbsp;(no&nbsp;aliases)</span></dd></dl>
 
 <hr>
-Readonly properties inherited from <a href="enum.html#EnumType">enum.EnumType</a>:<br>
+Readonly properties inherited from <a href="enum.md#EnumType">enum.EnumType</a>:<br>
 <dl><dt><strong>__members__</strong></dt>
 <dd><span class="code">Returns&nbsp;a&nbsp;mapping&nbsp;of&nbsp;member&nbsp;name-&gt;value.<br>
 &nbsp;<br>
@@ -656,19 +656,19 @@ is&nbsp;a&nbsp;read-only&nbsp;view&nbsp;of&nbsp;the&nbsp;internal&nbsp;mapping.<
 </td></tr></table> <p>
 <table class="section">
 <tr class="decor title-decor heading-text">
-<td class="section-title" colspan=3>&nbsp;<br><a name="Record">class <strong>Record</strong></a>(<a href="pybase3.utils.html#SmartDict">pybase3.utils.SmartDict</a>)</td></tr>
+<td class="section-title" colspan=3>&nbsp;<br><a name="Record">class <strong>Record</strong></a>(<a href="pybase3.utils.md#SmartDict">pybase3.utils.SmartDict</a>)</td></tr>
     
 <tr><td class="decor title-decor" rowspan=2><span class="code">&nbsp;&nbsp;&nbsp;</span></td>
 <td class="decor title-decor" colspan=2><span class="code"><a href="#Record">Record</a>(*args,&nbsp;**kwargs)<br>
 &nbsp;<br>
 Class&nbsp;to&nbsp;represent&nbsp;a&nbsp;record&nbsp;in&nbsp;a&nbsp;DBase&nbsp;III&nbsp;database.<br>
-Inherits&nbsp;from&nbsp;<a href="pybase3.utils.html#SmartDict">SmartDict</a>,&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;dot&nbsp;notation&nbsp;access&nbsp;to&nbsp;keys.<br>&nbsp;</span></td></tr>
+Inherits&nbsp;from&nbsp;<a href="pybase3.utils.md#SmartDict">SmartDict</a>,&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;dot&nbsp;notation&nbsp;access&nbsp;to&nbsp;keys.<br>&nbsp;</span></td></tr>
 <tr><td>&nbsp;</td>
 <td class="singlecolumn"><dl><dt>Method resolution order:</dt>
-<dd><a href="pybase3.html#Record">Record</a></dd>
-<dd><a href="pybase3.utils.html#SmartDict">pybase3.utils.SmartDict</a></dd>
-<dd><a href="builtins.html#dict">builtins.dict</a></dd>
-<dd><a href="builtins.html#object">builtins.object</a></dd>
+<dd><a href="pybase3.md#Record">Record</a></dd>
+<dd><a href="pybase3.utils.md#SmartDict">pybase3.utils.SmartDict</a></dd>
+<dd><a href="builtins.md#dict">builtins.dict</a></dd>
+<dd><a href="builtins.md#object">builtins.object</a></dd>
 </dl>
 <hr>
 Methods defined here:<br>
@@ -685,7 +685,7 @@ Readonly properties defined here:<br>
 <dl><dt><strong>to_datafields</strong></dt>
 </dl>
 <hr>
-Methods inherited from <a href="pybase3.utils.html#SmartDict">pybase3.utils.SmartDict</a>:<br>
+Methods inherited from <a href="pybase3.utils.md#SmartDict">pybase3.utils.SmartDict</a>:<br>
 <dl><dt><a name="Record-__delattr__"><strong>__delattr__</strong></a>(self, attr)</dt><dd><span class="code">Implement&nbsp;delattr(self,&nbsp;name).</span></dd></dl>
 
 <dl><dt><a name="Record-__getattr__"><strong>__getattr__</strong></a>(self, attr)</dt></dl>
@@ -697,11 +697,11 @@ Methods inherited from <a href="pybase3.utils.html#SmartDict">pybase3.utils.Smar
 <dl><dt><a name="Record-copy"><strong>copy</strong></a>(self)</dt><dd><span class="code">D.<a href="#Record-copy">copy</a>()&nbsp;-&gt;&nbsp;a&nbsp;shallow&nbsp;copy&nbsp;of&nbsp;D</span></dd></dl>
 
 <hr>
-Readonly properties inherited from <a href="pybase3.utils.html#SmartDict">pybase3.utils.SmartDict</a>:<br>
+Readonly properties inherited from <a href="pybase3.utils.md#SmartDict">pybase3.utils.SmartDict</a>:<br>
 <dl><dt><strong>parent</strong></dt>
 </dl>
 <hr>
-Data descriptors inherited from <a href="pybase3.utils.html#SmartDict">pybase3.utils.SmartDict</a>:<br>
+Data descriptors inherited from <a href="pybase3.utils.md#SmartDict">pybase3.utils.SmartDict</a>:<br>
 <dl><dt><strong>__dict__</strong></dt>
 <dd><span class="code">dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</span></dd>
 </dl>
@@ -709,7 +709,7 @@ Data descriptors inherited from <a href="pybase3.utils.html#SmartDict">pybase3.u
 <dd><span class="code">list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</span></dd>
 </dl>
 <hr>
-Methods inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
+Methods inherited from <a href="builtins.md#dict">builtins.dict</a>:<br>
 <dl><dt><a name="Record-__contains__"><strong>__contains__</strong></a>(self, key, /)</dt><dd><span class="code">True&nbsp;if&nbsp;the&nbsp;dictionary&nbsp;has&nbsp;the&nbsp;specified&nbsp;key,&nbsp;else&nbsp;False.</span></dd></dl>
 
 <dl><dt><a name="Record-__delitem__"><strong>__delitem__</strong></a>(self, key, /)</dt><dd><span class="code">Delete&nbsp;self[key].</span></dd></dl>
@@ -750,9 +750,9 @@ Methods inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
 
 <dl><dt><a name="Record-get"><strong>get</strong></a>(self, key, default=None, /)</dt><dd><span class="code">Return&nbsp;the&nbsp;value&nbsp;for&nbsp;key&nbsp;if&nbsp;key&nbsp;is&nbsp;in&nbsp;the&nbsp;dictionary,&nbsp;else&nbsp;default.</span></dd></dl>
 
-<dl><dt><a name="Record-items"><strong>items</strong></a>(...)</dt><dd><span class="code">D.<a href="#Record-items">items</a>()&nbsp;-&gt;&nbsp;a&nbsp;set-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;items</span></dd></dl>
+<dl><dt><a name="Record-items"><strong>items</strong></a>(...)</dt><dd><span class="code">D.<a href="#Record-items">items</a>()&nbsp;-&gt;&nbsp;a&nbsp;set-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;items</span></dd></dl>
 
-<dl><dt><a name="Record-keys"><strong>keys</strong></a>(...)</dt><dd><span class="code">D.<a href="#Record-keys">keys</a>()&nbsp;-&gt;&nbsp;a&nbsp;set-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;keys</span></dd></dl>
+<dl><dt><a name="Record-keys"><strong>keys</strong></a>(...)</dt><dd><span class="code">D.<a href="#Record-keys">keys</a>()&nbsp;-&gt;&nbsp;a&nbsp;set-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;keys</span></dd></dl>
 
 <dl><dt><a name="Record-pop"><strong>pop</strong></a>(...)</dt><dd><span class="code">D.<a href="#Record-pop">pop</a>(k[,d])&nbsp;-&gt;&nbsp;v,&nbsp;remove&nbsp;specified&nbsp;key&nbsp;and&nbsp;return&nbsp;the&nbsp;corresponding&nbsp;value.<br>
 &nbsp;<br>
@@ -773,20 +773,20 @@ If&nbsp;E&nbsp;is&nbsp;present&nbsp;and&nbsp;has&nbsp;a&nbsp;.<a href="#Record-k
 If&nbsp;E&nbsp;is&nbsp;present&nbsp;and&nbsp;lacks&nbsp;a&nbsp;.<a href="#Record-keys">keys</a>()&nbsp;method,&nbsp;then&nbsp;does:&nbsp;&nbsp;for&nbsp;k,&nbsp;v&nbsp;in&nbsp;E:&nbsp;D[k]&nbsp;=&nbsp;v<br>
 In&nbsp;either&nbsp;case,&nbsp;this&nbsp;is&nbsp;followed&nbsp;by:&nbsp;for&nbsp;k&nbsp;in&nbsp;F:&nbsp;&nbsp;D[k]&nbsp;=&nbsp;F[k]</span></dd></dl>
 
-<dl><dt><a name="Record-values"><strong>values</strong></a>(...)</dt><dd><span class="code">D.<a href="#Record-values">values</a>()&nbsp;-&gt;&nbsp;an&nbsp;<a href="builtins.html#object">object</a>&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;values</span></dd></dl>
+<dl><dt><a name="Record-values"><strong>values</strong></a>(...)</dt><dd><span class="code">D.<a href="#Record-values">values</a>()&nbsp;-&gt;&nbsp;an&nbsp;<a href="builtins.md#object">object</a>&nbsp;providing&nbsp;a&nbsp;view&nbsp;on&nbsp;D's&nbsp;values</span></dd></dl>
 
 <hr>
-Class methods inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
-<dl><dt><a name="Record-__class_getitem__"><strong>__class_getitem__</strong></a>(...)<span class="grey"><span class="heading-text"> from <a href="builtins.html#type">builtins.type</a></span></span></dt><dd><span class="code">See&nbsp;<a href="https://peps.python.org/pep-0585/">PEP&nbsp;585</a></span></dd></dl>
+Class methods inherited from <a href="builtins.md#dict">builtins.dict</a>:<br>
+<dl><dt><a name="Record-__class_getitem__"><strong>__class_getitem__</strong></a>(...)<span class="grey"><span class="heading-text"> from <a href="builtins.md#type">builtins.type</a></span></span></dt><dd><span class="code">See&nbsp;<a href="https://peps.python.org/pep-0585/">PEP&nbsp;585</a></span></dd></dl>
 
-<dl><dt><a name="Record-fromkeys"><strong>fromkeys</strong></a>(iterable, value=None, /)<span class="grey"><span class="heading-text"> from <a href="builtins.html#type">builtins.type</a></span></span></dt><dd><span class="code">Create&nbsp;a&nbsp;new&nbsp;dictionary&nbsp;with&nbsp;keys&nbsp;from&nbsp;iterable&nbsp;and&nbsp;values&nbsp;set&nbsp;to&nbsp;value.</span></dd></dl>
-
-<hr>
-Static methods inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
-<dl><dt><a name="Record-__new__"><strong>__new__</strong></a>(*args, **kwargs)<span class="grey"><span class="heading-text"> from <a href="builtins.html#type">builtins.type</a></span></span></dt><dd><span class="code">Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</span></dd></dl>
+<dl><dt><a name="Record-fromkeys"><strong>fromkeys</strong></a>(iterable, value=None, /)<span class="grey"><span class="heading-text"> from <a href="builtins.md#type">builtins.type</a></span></span></dt><dd><span class="code">Create&nbsp;a&nbsp;new&nbsp;dictionary&nbsp;with&nbsp;keys&nbsp;from&nbsp;iterable&nbsp;and&nbsp;values&nbsp;set&nbsp;to&nbsp;value.</span></dd></dl>
 
 <hr>
-Data and other attributes inherited from <a href="builtins.html#dict">builtins.dict</a>:<br>
+Static methods inherited from <a href="builtins.md#dict">builtins.dict</a>:<br>
+<dl><dt><a name="Record-__new__"><strong>__new__</strong></a>(*args, **kwargs)<span class="grey"><span class="heading-text"> from <a href="builtins.md#type">builtins.type</a></span></span></dt><dd><span class="code">Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.md#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</span></dd></dl>
+
+<hr>
+Data and other attributes inherited from <a href="builtins.md#dict">builtins.dict</a>:<br>
 <dl><dt><strong>__hash__</strong> = None</dl>
 
 </td></tr></table></td></tr></table><p>
@@ -795,26 +795,26 @@ Data and other attributes inherited from <a href="builtins.html#dict">builtins.d
 <td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
     
 <tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
-<td class="singlecolumn"><dl><dt><a name="-Lock"><strong>Lock</strong></a> = allocate_lock(...)</dt><dd><span class="code">allocate_lock()&nbsp;-&gt;&nbsp;lock&nbsp;<a href="builtins.html#object">object</a><br>
+<td class="singlecolumn"><dl><dt><a name="-Lock"><strong>Lock</strong></a> = allocate_lock(...)</dt><dd><span class="code">allocate_lock()&nbsp;-&gt;&nbsp;lock&nbsp;<a href="builtins.md#object">object</a><br>
 (allocate()&nbsp;is&nbsp;an&nbsp;obsolete&nbsp;synonym)<br>
 &nbsp;<br>
-Create&nbsp;a&nbsp;new&nbsp;lock&nbsp;<a href="builtins.html#object">object</a>.&nbsp;See&nbsp;help(type(threading.<a href="#-Lock">Lock</a>()))&nbsp;for<br>
+Create&nbsp;a&nbsp;new&nbsp;lock&nbsp;<a href="builtins.md#object">object</a>.&nbsp;See&nbsp;help(type(threading.<a href="#-Lock">Lock</a>()))&nbsp;for<br>
 information&nbsp;about&nbsp;locks.</span></dd></dl>
- <dl><dt><a name="-connect"><strong>connect</strong></a>(dirname: str)</dt><dd><span class="code">Returns&nbsp;a&nbsp;<a href="#Connection">Connection</a>&nbsp;<a href="builtins.html#object">object</a>&nbsp;for&nbsp;the&nbsp;specified&nbsp;directory.</span></dd></dl>
+ <dl><dt><a name="-connect"><strong>connect</strong></a>(dirname: str)</dt><dd><span class="code">Returns&nbsp;a&nbsp;<a href="#Connection">Connection</a>&nbsp;<a href="builtins.md#object">object</a>&nbsp;for&nbsp;the&nbsp;specified&nbsp;directory.</span></dd></dl>
  <dl><dt><strong>getDay</strong> <em>lambda</em> (...)</dt></dl>
  <dl><dt><strong>getMonth</strong> <em>lambda</em> (...)</dt></dl>
  <dl><dt><strong>getYear</strong> <em>lambda</em> (...)</dt><dd><span class="code">#&nbsp;getYear&nbsp;=&nbsp;lambda:&nbsp;datetime.now().year&nbsp;-&nbsp;1900</span></dd></dl>
- <dl><dt><a name="-make_bottomline"><strong>make_bottomline</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;bottom&nbsp;line&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
- <dl><dt><a name="-make_csv_lines"><strong>make_csv_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;,&nbsp;'csv'&nbsp;style</span></dd></dl>
- <dl><dt><a name="-make_cursor_line"><strong>make_cursor_line</strong></a>(linetype: str, r: pybase3.Record, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;a&nbsp;data&nbsp;line&nbsp;(field&nbsp;values)&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
- <dl><dt><a name="-make_cursor_lines"><strong>make_cursor_lines</strong></a>(linetype: str, curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
- <dl><dt><a name="-make_header_line"><strong>make_header_line</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;header&nbsp;line&nbsp;(field&nbsp;names)&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
- <dl><dt><a name="-make_intermediateline"><strong>make_intermediateline</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;intermediate&nbsp;(line&nbsp;joiner)&nbsp;line&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
+ <dl><dt><a name="-make_bottomline"><strong>make_bottomline</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;bottom&nbsp;line&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
+ <dl><dt><a name="-make_csv_lines"><strong>make_csv_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;,&nbsp;'csv'&nbsp;style</span></dd></dl>
+ <dl><dt><a name="-make_cursor_line"><strong>make_cursor_line</strong></a>(linetype: str, r: pybase3.Record, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;a&nbsp;data&nbsp;line&nbsp;(field&nbsp;values)&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
+ <dl><dt><a name="-make_cursor_lines"><strong>make_cursor_lines</strong></a>(linetype: str, curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
+ <dl><dt><a name="-make_header_line"><strong>make_header_line</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;header&nbsp;line&nbsp;(field&nbsp;names)&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
+ <dl><dt><a name="-make_intermediateline"><strong>make_intermediateline</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;intermediate&nbsp;(line&nbsp;joiner)&nbsp;line&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
  <dl><dt><a name="-make_list_lines"><strong>make_list_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt></dl>
- <dl><dt><a name="-make_pretty_table_lines"><strong>make_pretty_table_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;,&nbsp;'box&nbsp;lines'&nbsp;style</span></dd></dl>
- <dl><dt><a name="-make_raw_lines"><strong>make_raw_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;,&nbsp;'raw'&nbsp;(no&nbsp;separators)&nbsp;style</span></dd></dl>
- <dl><dt><a name="-make_table_lines"><strong>make_table_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;,&nbsp;'sqlite3&nbsp;.table'&nbsp;style</span></dd></dl>
- <dl><dt><a name="-make_topline"><strong>make_topline</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;top&nbsp;line&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.html#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
+ <dl><dt><a name="-make_pretty_table_lines"><strong>make_pretty_table_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;,&nbsp;'box&nbsp;lines'&nbsp;style</span></dd></dl>
+ <dl><dt><a name="-make_raw_lines"><strong>make_raw_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;,&nbsp;'raw'&nbsp;(no&nbsp;separators)&nbsp;style</span></dd></dl>
+ <dl><dt><a name="-make_table_lines"><strong>make_table_lines</strong></a>(curr: pybase3.Cursor) -&gt; Generator[str, NoneType, NoneType]</dt><dd><span class="code">Generates&nbsp;all&nbsp;the&nbsp;lines&nbsp;for&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;,&nbsp;'sqlite3&nbsp;.table'&nbsp;style</span></dd></dl>
+ <dl><dt><a name="-make_topline"><strong>make_topline</strong></a>(linetype: str, description: List[Tuple[int, str, str, str, int, int]]) -&gt; str</dt><dd><span class="code">Returns&nbsp;the&nbsp;top&nbsp;line&nbsp;of&nbsp;a&nbsp;table-like&nbsp;<a href="builtins.md#object">object</a>&nbsp;of&nbsp;the&nbsp;type&nbsp;specified&nbsp;by&nbsp;linetype</span></dd></dl>
  <dl><dt><strong>to_bytes</strong> <em>lambda</em> x</dt></dl>
  <dl><dt><strong>to_str</strong> <em>lambda</em> x</dt></dl>
 </td></tr></table><p>
