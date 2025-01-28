@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.98.21"
+__version__ = "1.99.1"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -946,6 +946,7 @@ class DbaseFile:
         for i, alias in enumerate(self.field_alias):
             if alias == fieldname:
                 fieldname = self.fields[i].name
+                break
 
         if fieldname in self.indexes:
             return self._indexed_search(fieldname, value, start, funcname, compare_function)
@@ -1262,7 +1263,7 @@ class DbaseFile:
         """
 
         if not wherestr:
-            return [(self.field_names[0], 0 if self.field_types[0] in ['N', 'F'] else '', lambda f, v: True)]
+            return [[(self.field_names[0], 0 if self.field_types[0] in ['N', 'F'] else '', lambda f, v: True)]]
 
         operator_map = {
             "=": "==",
@@ -1272,46 +1273,54 @@ class DbaseFile:
             "<=": "<=",
             ">=": ">="
         }
-        conditions = re.split(r'\s+(AND|OR)\s+', wherestr, 0, re.IGNORECASE)
+        # conditions = re.split(r'\s+AND\s+', wherestr, 0, re.IGNORECASE)
+        # conditions = [re.split(r'\s+OR\s+', condition, 0, re.IGNORECASE) for condition in conditions]
+        conditions = [re.split(r'\s+OR\s+', condition, 0, re.IGNORECASE) for condition in 
+                      re.split(r'\s+AND\s+', wherestr, 0, re.IGNORECASE)]
         # Just for now will only parse first condition
-        condition = conditions[0]
-        match = re.match(r"(\w+)\s*(=|<=|>=|<|>|!=|LIKE)\s*'?([^']*)'?", condition, 
-                         re.IGNORECASE)
-        if not match:
-            raise ValueError("Invalid WHERE clause format")
-        lhs, operator, rhs = match.groups()
-        if operator == 'LIKE' or operator == 'like':
-            if rhs[0] == '%' and rhs[-1] == '%':
-                operator = 'in'
-                rhs = rhs[1:-1]
-                # lhs, rhs = rhs, lhs
-            elif rhs[0] == '%':
-                operator = 'endswith'
-                rhs = rhs[1:]
-            elif rhs[-1] == '%':
-                operator = 'startswith'
-                rhs = rhs[:-1]
-            else:
-                operator = 'in'
-                # lhs, rhs = rhs, lhs
-        else:
-            if operator not in operator_map:
-                raise ValueError(f"Invalid operator {operator}")
-            operator = operator_map[operator]
+        # condition = conditions[0][0]
+        ands = []
+        for condition in conditions:
+            ors = []
+            for cond in condition:
+                match = re.match(r"(\w+)\s*(LIKE|=|<=|>=|<|>|!=)\s*'?([^']*)'?", cond, re.IGNORECASE)
+                if not match:
+                    raise ValueError("Invalid WHERE clause format")
+                lhs, operator, rhs = match.groups()
+                if operator == 'LIKE' or operator == 'like':
+                    if rhs[0] == '%' and rhs[-1] == '%':
+                        operator = 'in'
+                        rhs = rhs[1:-1]
+                        # lhs, rhs = rhs, lhs
+                    elif rhs[0] == '%':
+                        operator = 'endswith'
+                        rhs = rhs[1:]
+                    elif rhs[-1] == '%':
+                        operator = 'startswith'
+                        rhs = rhs[:-1]
+                    else:
+                        operator = 'in'
+                        # lhs, rhs = rhs, lhs
+                else:
+                    if operator not in operator_map:
+                        raise ValueError(f"Invalid operator {operator}")
+                    operator = operator_map[operator]
 
-        if rhs.isdigit():
-            rhs = coerce_number(rhs)
-        if operator == 'in':
-            lambdasrc = f"lambda f, v: f.find(v) >= 0"
-        elif operator == 'startswith':
-            lambdasrc = f"lambda f, v: f.startswith(v)" 
-        elif operator == 'endswith':
-            lambdasrc = f"lambda f, v: f.endswith(v)"
-        else:
-            lambdasrc = f"lambda f, v: f {operator} v"
-        searchfunc = eval(lambdasrc)
-        return [(lhs, rhs, searchfunc)]
-
+                if rhs.isdigit():
+                    rhs = coerce_number(rhs)
+                if operator == 'in':
+                    lambdasrc = f"lambda f, v: f.find(v) >= 0"
+                elif operator == 'startswith':
+                    lambdasrc = f"lambda f, v: f.startswith(v)" 
+                elif operator == 'endswith':
+                    lambdasrc = f"lambda f, v: f.endswith(v)"
+                else:
+                    lambdasrc = f"lambda f, v: f {operator} v"
+                searchfunc = eval(lambdasrc)
+                ors.append((lhs, rhs, searchfunc))
+            ands.append(ors)
+        return ands
+    
     def _execute_select(self, sql_parser: SQLParser, args=[]):
         """
         Receives a parsed SQL SELECT command and returns a Cursor object with the results.
@@ -1337,9 +1346,23 @@ class DbaseFile:
             f.alias = fieldobjs[field]
             selectedfields.append(f)
         
-        field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
-        filteredrecords = self.filter(field_param, value_param, 
-                                      compare_function=compare_function)
+        ands = self.parse_conditions(parsed['where'])
+        filteredrecords = []
+        for ors in ands:
+            orfiltered = []
+            for field_param, value_param, compare_function in ors:
+                newset = [r.metadata.index for r in 
+                          self.filter(field_param, value_param, 
+                                      compare_function=compare_function)]
+                orfiltered = list(set(orfiltered) | set(newset))
+            filteredrecords = list(set(filteredrecords) & set(orfiltered)) if filteredrecords else orfiltered 
+
+        filteredrecords = [self.get_record(i) for i in filteredrecords]
+
+        # field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0][0]
+        # filteredrecords = self.filter(field_param, value_param, 
+        #                               compare_function=compare_function)
+
         if parsed.get('order'):
             orderdata = shlex.split(parsed['order'])
             ordersrc = orderdata[0]
@@ -1789,25 +1812,24 @@ def make_pretty_table_lines(curr: Cursor)-> Generator[str, None, None]:
     """Generates all the lines for a table-like object , 'box lines' style"""
     return make_cursor_lines('pretty_table', curr)
 
-if __name__ == '__main__':
+def test_pybase3():
     """
-    Tests for the dbf module.
+    Tests for pybase3 module.
     """
 
     subprocess.run(['clear'])
     conn = connect('db')
-    curr = conn.execute("update todos set task = 'Do something useful...' where id = 4;")
-    curr = conn.execute("select * from todos;")
+    curr = conn.execute("select * from teams where id < 2 or id > 2 and titles > 40;")
     for line in make_pretty_table_lines(curr):
         print(line)
-    os.sys.exit(0)
+    return
 #############################################################
     # dbf = DbaseFile("db/teams.dbf")
     conn = connect('db')
     curr = conn.execute("SELECT nombre as Team, titles as Championships FROM teams where id >= 3;")
     for line in make_pretty_table_lines(curr):
         print(line)
-    os.sys.exit(0)
+    return
 #############################################################
     dbf = DbaseFile("db/teams.dbf")
     sqli = "insert into teams (id, nombre, titles) values(6, 'Tiro Federal', 1);"
@@ -1821,7 +1843,7 @@ if __name__ == '__main__':
         print(row.nombre)
     dbf.execute("update teams set titles=200 where id=14;")
     print(dbf[12])
-    os.sys.exit(0)
+    return
 #############################################################
     teams = DbaseFile('db/teams.dbf')
     curr = teams.execute("select * from teams where id > 0;")
@@ -1832,3 +1854,5 @@ if __name__ == '__main__':
     # print("Done!")
     pass
     
+if __name__ == "__main__":
+    test_pybase3()  

@@ -129,7 +129,7 @@ Type 'help' for help.\n
         """Usage: delete from <tablename> where <condition>\nDeletes records from the specified table"""
 
         line = f"delete {line}{';' if not line.endswith(';') else ''}"
-        print(line)
+        # print(line)
         print()
         try:
             numrecs = self.connection.execute(line).fetchone()
@@ -142,7 +142,7 @@ Type 'help' for help.\n
     def do_update(self, line):
         """Usage: update <tablename> set <field>=<value> where <condition>\nUpdates records in the specified table"""
         line = f"update {line}{';' if not line.endswith(';') else ''}"
-        print(line)
+        # print(line)
         print()
         try:
             numrecs = self.connection.execute(line).fetchone()
@@ -155,7 +155,7 @@ Type 'help' for help.\n
     def do_insert(self, line):
         """Usage: insert into <tablename> values(<values>)\nInserts a new record in the specified table"""
         line = f"insert {line}{';' if not line.endswith(';') else ''}"
-        print(line)
+        # print(line)
         print()
         try:
             numrecs = self.connection.execute(line).fetchone()
@@ -168,7 +168,7 @@ Type 'help' for help.\n
     def do_select(self, line):
         """Executes an SQL 'select' command"""
         line = f"select {line}{';' if not line.endswith(';') else ''}"
-        print(line)
+        # print(line)
         print()
         try:
             for l in display_function(self.connection.execute(line)):
