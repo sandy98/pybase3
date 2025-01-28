@@ -68,6 +68,10 @@ class SQLParser:
         if tokens[-1] != ";":
             tokens.append(";")
 
+        for i, token in enumerate(tokens):
+            if "(" in token and (not token.endswith(")")):
+                tokens[i] = f"{token})"
+
         return tokens
 
     def parse(self):
