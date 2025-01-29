@@ -8,12 +8,12 @@ from argparse import ArgumentParser
 try:    
     from __init__ import __version__ as version
     from __init__ import DbaseFile, Connection
-    from __init__ import make_table_lines, make_pretty_table_lines
+    from __init__ import make_table_lines, make_pretty_table_lines, make_raw_lines, make_list_lines, make_csv_lines
     # print("Imported from package")
 except ImportError:
     from pybase3 import __version__ as version
     from pybase3 import DbaseFile, Connection
-    from pybase3 import make_table_lines, make_pretty_table_lines
+    from pybase3 import make_table_lines, make_pretty_table_lines, make_raw_lines, make_list_lines, make_csv_lines
     # print("Imported from local")
 
 display_function = make_pretty_table_lines
