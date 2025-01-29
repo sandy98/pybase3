@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.2"
+__version__ = "1.99.5"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -59,13 +59,13 @@ from multiprocessing.pool import ThreadPool
 # from multiprocessing import Lock
 
 try:
-    # Import from the package
-    from pybase3.utils import SmartDict, coerce_number
-    from pybase3.sqlparser import SQLParser
-except ImportError:
     # Import from the local module
     from utils import SmartDict, coerce_number
     from sqlparser import SQLParser
+except ImportError:
+    # Import from the package
+    from pybase3.utils import SmartDict, coerce_number
+    from pybase3.sqlparser import SQLParser
 
 to_bytes = lambda x: x.encode('latin1') if type(x) == str else x
 to_str = lambda x: x.decode('latin1') if type(x) == bytes else x
@@ -1329,23 +1329,12 @@ class DbaseFile:
         :returns Cursor object with the results of the SELECT command.
         """
 
-        fieldobjs = {}
+        def iscolumn_func(token):
+            func_re = r"^(?P<func_name>avg|count|sum)\((?P<field>.+)\)$"
+            return re.match(func_re, token)
+
         parsed = sql_parser.parsed
 
-        columns = parsed['columns']
-        for field in columns:
-            if field['column'] == '*':
-                fieldobjs = {**fieldobjs, **{name: name for name in self.field_names}}
-                break
-            if field['column'] not in self.field_names:
-                raise ValueError(f"Field {field['column']} not found")
-            fieldobjs = {**fieldobjs, **{field['column']: field['alias']}}
-        selectedfields = []
-        for field in fieldobjs:
-            f = self.get_field(field)
-            f.alias = fieldobjs[field]
-            selectedfields.append(f)
-        
         ands = self.parse_conditions(parsed['where'])
         filteredrecords = []
         for ors in ands:
@@ -1359,10 +1348,6 @@ class DbaseFile:
 
         filteredrecords = [self.get_record(i) for i in filteredrecords]
 
-        # field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0][0]
-        # filteredrecords = self.filter(field_param, value_param, 
-        #                               compare_function=compare_function)
-
         if parsed.get('order'):
             orderdata = shlex.split(parsed['order'])
             ordersrc = orderdata[0]
@@ -1370,12 +1355,65 @@ class DbaseFile:
             filteredrecords = sorted(filteredrecords, key=lambda r: r[ordersrc], reverse=reverse)
 
         recordslen = len(filteredrecords)
-        records = self.fields_view(fields=selectedfields, records=filteredrecords)
-        cursor = Cursor(description=[(i, f.alias, f.name, f.type, f.length, f.decimal) 
-                                     for i, f in enumerate(selectedfields)], 
-                                     records=records)
-        cursor.rowsaffected = recordslen
-        return cursor
+
+        fieldobjs = {}
+        funcfields = {}
+        has_func_column = False
+
+        selectedfields = []
+        columns = parsed['columns']
+        for field in columns:
+            if field['column'] == '*':
+                fieldobjs = {**fieldobjs, **{name: name for name in self.field_names}}
+                break
+            m = iscolumn_func(field['column'])
+            if m:
+                d = m.groupdict()
+                func_name = d.get('func_name')
+                func_field = d.get('field')
+                if func_field not in self.field_names and func_field != '*':
+                    raise ValueError(f"Field {func_field} not found for function '{func_name}'")
+                # fieldobjs = {**fieldobjs, **{field_name: f"{func_name}({field_name})"}}
+                has_func_column = True
+                funcfields[field['alias']] = (func_name, func_field)
+            else:
+                func_name = None
+                func_field = None
+                if field['column'] not in self.field_names:
+                    raise ValueError(f"Field {field['column']} not found")
+                fieldobjs = {**fieldobjs, **{field['column']: field['alias']}}
+
+        if len(funcfields) and len(fieldobjs):
+            raise ValueError("Cannot mix function columns with regular columns")
+
+        if not has_func_column:
+            for field in fieldobjs:
+                f = self.get_field(field)
+                f.alias = fieldobjs[field]
+                selectedfields.append(f)
+            
+            records = self.fields_view(fields=selectedfields, records=filteredrecords)
+            cursor = Cursor(description=[(i, f.alias, f.name, f.type, f.length, f.decimal) 
+                                        for i, f in enumerate(selectedfields)], 
+                                        records=records)
+            cursor.rowsaffected = recordslen
+            return cursor
+        else:
+            for field in funcfields:
+                selectedfields.append((field, *funcfields[field]))
+            record = Record()
+            description = [(i, f[0], f"{f[1]}({f[2]})", 'N', 10, 0) for i, f in enumerate(selectedfields)]
+            for f in selectedfields:
+                func_name, func_field = f[1:]
+                if func_name == 'count':
+                    record[f[0]] = len(filteredrecords)
+                elif func_name == 'sum':
+                    record[f[0]] = sum([r[func_field] for r in filteredrecords])
+                elif func_name == 'avg':
+                    record[f[0]] = sum([r[func_field] for r in filteredrecords]) / len(filteredrecords)
+            cursor = Cursor(description=description, records=(r for r in [record]))
+            cursor.rowsaffected = 1
+            return cursor
 
     def _execute_update(self, sql_parser: SQLParser, args=[]):
         """
@@ -1819,9 +1857,27 @@ def test_pybase3():
 
     subprocess.run(['clear'])
     conn = connect('db')
-    curr = conn.execute("select * from teams where id < 2 or id > 2 and titles > 40;")
+
+    sql = "select id as Id, nombre as Team, titles as Titles from teams where id < 2 or id > 2 and titles > 40;"
+    curr = conn.execute(sql)
+    print()
+    print(sql)
+    print()
     for line in make_pretty_table_lines(curr):
         print(line)
+    
+    sql = """
+    select  count(*) as Cantidad, sum(titles)  as   Campeonatos, avg(titles) as Promedio 
+    from teams where id = 1 or id = 13 or id = 3;
+    """
+    print()
+    print(sql)
+    print()
+    curr = conn.execute(sql)
+    print(curr.description)
+    print()
+    print(curr.fetchone())
+    print()
     return
 #############################################################
     # dbf = DbaseFile("db/teams.dbf")

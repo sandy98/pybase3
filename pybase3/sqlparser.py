@@ -32,8 +32,15 @@ class SQLParser:
             sqlcmd (str): The SQL statement to parse.
         
         """
-        self.sql = re.sub(r"(values|VALUES)\(", "VALUES (", sqlcmd, flags=re.IGNORECASE)
+
+        resub = r"\s{2,}"
+        sqlcmd = sqlcmd.strip().replace("\n", " ").replace("\r", " ").replace(" ,", ",")
+        # patchedsql = re.sub(r'[\s]', "@", sqlcmd)
+        # print(f"PATCHED SQL: {patchedsql}")
+        self.sql = re.sub(resub, " ", sqlcmd, flags=re.IGNORECASE)
+        self.sql = re.sub(r"(values|VALUES)\(", "VALUES (", self.sql, flags=re.IGNORECASE)
         self.sql = re.sub(r"\s*\=\s*", "=", self.sql, flags=re.IGNORECASE)
+        # print(f"FINAL SQL: {self.sql}")
         self.tokens = self.tokenize()
         self.pos = 0
         self.parsed = self.parse()
@@ -305,6 +312,13 @@ def test():
 
     print("Testing SELECT statement:")
     sql = "SELECT first_name, last_name, employees.age AS years FROM employees WHERE age > 30 order by last_name asc;"
+    print (f"'{sql}'\n")
+    parser = SQLParser(sql)
+    for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
+    input("\nPress <Enter> to continue...\n")
+    print("Testing SELECT statement with function column:")
+    # sql = "SELECT avg(salary) as AvSalary FROM employees WHERE age > 30 ;"
+    sql = "select sum(titles) as Cantidad from teams;"
     print (f"'{sql}'\n")
     parser = SQLParser(sql)
     for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
