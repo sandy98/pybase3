@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.7"
+__version__ = "1.99.9"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -1330,7 +1330,7 @@ class DbaseFile:
         """
 
         def iscolumn_func(token):
-            func_re = r"^(?P<func_name>avg|count|sum)\((?P<field>.+)\)$"
+            func_re = r"^(?P<func_name>avg|count|sum|max|min)\((?P<field>.+)\)$"
             return re.match(func_re, token)
 
         parsed = sql_parser.parsed
@@ -1411,6 +1411,11 @@ class DbaseFile:
                     record[f[0]] = sum([r[func_field] for r in filteredrecords])
                 elif func_name == 'avg':
                     record[f[0]] = sum([r[func_field] for r in filteredrecords]) / len(filteredrecords)
+                elif func_name == 'max':
+                    record[f[0]] = max([r[func_field] for r in filteredrecords])
+                elif func_name == 'min':
+                    record[f[0]] = min([r[func_field] for r in filteredrecords])
+
             cursor = Cursor(description=description, records=(r for r in [record]))
             cursor.rowsaffected = 1
             return cursor
@@ -1868,7 +1873,7 @@ def test_pybase3():
     
     sql = """
     select  count(*) as Cantidad, sum(titles)  as   Campeonatos, avg(titles) as Promedio 
-    from teams where id = 1 or id = 13 or id = 3;
+    from teams;
     """
     print()
     print(sql)
