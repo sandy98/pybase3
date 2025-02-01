@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.13"
+__version__ = "1.99.15"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -1224,7 +1224,16 @@ class DbaseFile:
                 self.file.write(b'\x01' if record[field.name] else b'\x00')
             else:
                 raise ValueError(f"Unknown field type {field.type}")
+        
+        hoy = datetime.now()
+        self.header.year = hoy.year - (2000 if hoy.year > 2000 else 1900)
+        self.header.month = hoy.month
+        self.header.day = hoy.day
+        self.datasize = self.header.record_size * self.header.records
+        self.file.seek(0)
+        self.file.write(self.header.to_bytes())        
         self.file.flush()
+        self.update_mdx()
 
     def transform(self, record:Record, fields:List[DbaseField]):
         """
