@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.17"
+__version__ = "1.99.19"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -1330,6 +1330,22 @@ class DbaseFile:
             ands.append(ors)
         return ands
     
+    def get_filtered_records(self, parser:SQLParser):
+        parsed = parser.parsed
+        ands = self.parse_conditions(parsed['where'])
+        filteredrecords = []
+        for ors in ands:
+            orfiltered = []
+            for field_param, value_param, compare_function in ors:
+                newset = [r.metadata.index for r in 
+                          self.filter(field_param, value_param, 
+                                      compare_function=compare_function)]
+                orfiltered = list(set(orfiltered) | set(newset))
+            filteredrecords = list(set(filteredrecords) & set(orfiltered)) if filteredrecords else orfiltered 
+
+        return [self.get_record(i) for i in filteredrecords]
+
+
     def _execute_select(self, sql_parser: SQLParser, args=[]):
         """
         Receives a parsed SQL SELECT command and returns a Cursor object with the results.
@@ -1342,21 +1358,8 @@ class DbaseFile:
             func_re = r"^(?P<func_name>avg|count|sum|max|min)\((?P<field>.+)\)$"
             return re.match(func_re, token)
 
+        filteredrecords = self.get_filtered_records(sql_parser)
         parsed = sql_parser.parsed
-
-        ands = self.parse_conditions(parsed['where'])
-        filteredrecords = []
-        for ors in ands:
-            orfiltered = []
-            for field_param, value_param, compare_function in ors:
-                newset = [r.metadata.index for r in 
-                          self.filter(field_param, value_param, 
-                                      compare_function=compare_function)]
-                orfiltered = list(set(orfiltered) | set(newset))
-            filteredrecords = list(set(filteredrecords) & set(orfiltered)) if filteredrecords else orfiltered 
-
-        filteredrecords = [self.get_record(i) for i in filteredrecords]
-
         if parsed.get('order'):
             orderdata = shlex.split(parsed['order'])
             ordersrc = orderdata[0]
@@ -1442,20 +1445,8 @@ class DbaseFile:
         # field_param, value_param, compare_function = response
         # filteredrecords = self.filter(field_param, value_param, compare_function=compare_function)
 
+        filteredrecords = self.get_filtered_records(sql_parser)
         parsed = sql_parser.parsed
-        ands = self.parse_conditions(parsed['where'])
-        filteredrecords = []
-        for ors in ands:
-            orfiltered = []
-            for field_param, value_param, compare_function in ors:
-                newset = [r.metadata.index for r in 
-                          self.filter(field_param, value_param, 
-                                      compare_function=compare_function)]
-                orfiltered = list(set(orfiltered) | set(newset))
-            filteredrecords = list(set(filteredrecords) & set(orfiltered)) if filteredrecords else orfiltered 
-
-        filteredrecords = [self.get_record(i) for i in filteredrecords]
-
         numupdated = len(filteredrecords)
         # pairs = [re.split(r"\s*,\s*", pair) for pair in parsed['updates']]
         pairs = parsed['updates']
@@ -1482,9 +1473,7 @@ class DbaseFile:
         """
 
         parsed = sql_parser.parsed
-        field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
-        filteredrecords = self.filter(field_param, value_param, 
-                                      compare_function=compare_function)
+        filteredrecords = self.get_filtered_records(sql_parser)
         numdeleted = len(filteredrecords)
         for record in filteredrecords:
             record['deleted'] = True
