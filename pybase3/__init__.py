@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.15"
+__version__ = "1.99.17"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -181,21 +181,21 @@ class DbaseHeader:
         # curr_month = getMonth()
         # curr_day = getDay()
         if not (3 == self.version & 0b111):
-            raise ValueError(f"Version must be a byte (3-5), got {self.version}")            
+            raise ValueError(f"DbaseHeader Version must be a byte (3-5), got {self.version}")            
         if not (0 <= self.year <= curr_year):
-            raise ValueError(f"Year must be a byte (0-{curr_year}), got {self.year}")
+            raise ValueError(f"DbaseHeader Year must be a byte (0-{curr_year}), got {self.year}")
         if not (1 <= self.month <= 12):
-            raise ValueError(f"Month must be a byte (1-12), got {self.month}")    
+            raise ValueError(f"DbaseHeader Month must be a byte (1-12), got {self.month}")    
         if not (1 <= self.day <= 31):
-            raise ValueError(f"Day must be a byte (1-31), got {self.day}")
+            raise ValueError(f"DbaseHeader Day must be a byte (1-31), got {self.day}")
         if not (0 <= self.records <= 2**32-1):
-            raise ValueError(f"Records must be a 4-byte integer (0-{2**32-1}), got {self.records}")
+            raise ValueError(f"DbaseHeader Records must be a 4-byte integer (0-{2**32-1}), got {self.records}")
         if not (0 <= self.header_size <= 2**16-1):
-            raise ValueError(f"Header size must be a 2-byte integer (0-{2**16-1}), got {self.header_size}")
+            raise ValueError(f"DbaseHeader Header size must be a 2-byte integer (0-{2**16-1}), got {self.header_size}")
         if not (0 <= self.record_size <= 2**16-1):
-            raise ValueError(f"Record size must be a 2-byte integer (0-{2**16-1}), got {self.record_size}")
+            raise ValueError(f"DbaseHeader Record size must be a 2-byte integer (0-{2**16-1}), got {self.record_size}")
         if not (20 == len(self.reserved)):
-            raise ValueError(f"Reserved must be 20 bytes, got {len(self.reserved)}")
+            raise ValueError(f"DbaseHeader Reserved must be 20 bytes, got {len(self.reserved)}")
 
 
 @dataclass
@@ -358,7 +358,7 @@ class DbaseFile:
         else:
             srctype = stype
         if srctype not in cls.import_types:
-            raise ValueError(f"Invalid source type {srctype}")
+            raise ValueError(f"DbaseFile:  Invalid source type {srctype}")
         if not tablename:
             tablename = os.path.basename(filename).split('.')[0]
 
@@ -369,7 +369,7 @@ class DbaseFile:
             conn = sqlite3.Connection(filename)
             curr = conn.execute(f"SELECT * FROM sqlite_master WHERE type='table' AND name='{tablename}';")
             if not curr.fetchone():
-                raise ValueError(f"Table {tablename} not found")
+                raise ValueError(f"DbaseFile:  Table {tablename} not found")
             curr = conn.execute(f"PRAGMA table_info({tablename});")
             fields = []
             for row in curr.fetchall():
@@ -412,11 +412,11 @@ class DbaseFile:
                 fields = header.split(',')
                 firstline = file.readline().strip()
                 if not firstline:
-                    raise ValueError("No records found")
+                    raise ValueError("DbaseFile: No records found")
                 else:
                     values = firstline.split(',')
                     if len(values) != len(fields):
-                        raise ValueError("Inconsistent number of fields and values")
+                        raise ValueError("DbaseFile: Inconsistent number of fields and values")
                     dbFields: List[Tuple[str,str, int, int]] = []
                     for header, value in zip(fields, values):
                         if value.isdigit():
@@ -450,7 +450,7 @@ class DbaseFile:
         """
 
         if desttype not in self.export_types:
-            raise ValueError(f"Invalid destination type {desttype}")
+            raise ValueError(f"DbaseFile:  Invalid destination type {desttype}")
         if desttype.startswith('sqlite'):
             # raise NotImplementedError("SQLite export not implemented yet")
             if not filename:
@@ -594,7 +594,7 @@ class DbaseFile:
             try:
                 assert((self.header.header_size + self.datasize) == self.filesize)
             except AssertionError:
-                # raise ValueError(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
+                # raise ValueError(f"DbaseFile:  File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}")
                 os.sys.stderr.write(f"File size mismatch: expected {self.header.header_size + self.datasize + 1}, got {self.filesize}\n")
                 os.sys.stderr.flush()
         self._load_mdx()
@@ -756,7 +756,7 @@ class DbaseFile:
                 elif ftype == 'L':
                     file.write(b'T' if record[field.name] else b'F')
                 else:
-                    raise ValueError(f"Unknown field type {field.type}")
+                    raise ValueError(f"DbaseFile: Unknown field type {field.type}")
         file.write(b'\x1A')
         self.header.records -= numdeleted
         self.filesize -= numdeleted * self.header.record_size
@@ -783,7 +783,7 @@ class DbaseFile:
     
     # def add_field(self, name, type, length, decimal=0):
     #     if len(self.records) > 0:
-    #         raise ValueError("Cannot add field after records")
+    #         raise ValueError("DbaseFile: Cannot add field after records")
     #     if len(self.fields) > 0:
     #         address = self.fields[-1].address + self.fields[-1].length
     #     else:
@@ -810,7 +810,7 @@ class DbaseFile:
         """
 
         if len(data) != len(self.fields):
-            raise ValueError("Wrong number of fields")
+            raise ValueError("DbaseFile: Wrong number of fields")
         value = b''
         for field, val in zip(self.fields, data):
             ftype = field.type
@@ -952,7 +952,7 @@ class DbaseFile:
             return self._indexed_search(fieldname, value, start, funcname, compare_function)
         
         if funcname not in ("find", "index", ""):
-            raise ValueError("Invalid function name")
+            raise ValueError("DbaseFile: Invalid function name")
         if not fieldname:
             if compare_function:
                 result = compare_function(fieldname, value)
@@ -975,7 +975,7 @@ class DbaseFile:
 
         field = self.get_field(fieldname)
         if not field:
-            raise ValueError(f"Field {fieldname} not found")
+            raise ValueError(f"DbaseFile: Field {fieldname} not found")
         elif fieldname != field.name.strip():
             fieldname = field.name.strip()
         fieldtype = field.type
@@ -988,7 +988,7 @@ class DbaseFile:
             elif fieldtype == FieldType.DATE.value:
                 compare_function = lambda f, v: f == v
             else:
-                raise ValueError(f"Invalid field type {fieldtype} for comparison")
+                raise ValueError(f"DbaseFile: Invalid field type {fieldtype} for comparison")
             
         for i, record in enumerate(self[start:]):
             if compare_function(record[fieldname], value):
@@ -1014,7 +1014,7 @@ class DbaseFile:
         """
 
         if fieldname not in self.indexes:
-            raise ValueError(f"Index {fieldname} not found.")
+            raise ValueError(f"DbaseFile: Index {fieldname} not found.")
 
         if not compare_function:
             compare_function = (self.istartswith if self.get_field(fieldname).type == FieldType.CHARACTER.value 
@@ -1223,7 +1223,7 @@ class DbaseFile:
             elif ftype == 'L':
                 self.file.write(b'\x01' if record[field.name] else b'\x00')
             else:
-                raise ValueError(f"Unknown field type {field.type}")
+                raise ValueError(f"DbaseFile: Unknown field type {field.type}")
         
         hoy = datetime.now()
         self.header.year = hoy.year - (2000 if hoy.year > 2000 else 1900)
@@ -1294,7 +1294,7 @@ class DbaseFile:
             for cond in condition:
                 match = re.match(r"(\w+)\s*(LIKE|=|<=|>=|<|>|!=)\s*'?([^']*)'?", cond, re.IGNORECASE)
                 if not match:
-                    raise ValueError("Invalid WHERE clause format")
+                    raise ValueError("DbaseFile: DbaseFile: Invalid WHERE clause format")
                 lhs, operator, rhs = match.groups()
                 if operator == 'LIKE' or operator == 'like':
                     if rhs[0] == '%' and rhs[-1] == '%':
@@ -1312,7 +1312,7 @@ class DbaseFile:
                         # lhs, rhs = rhs, lhs
                 else:
                     if operator not in operator_map:
-                        raise ValueError(f"Invalid operator {operator}")
+                        raise ValueError(f"DbaseFile: Invalid operator {operator}")
                     operator = operator_map[operator]
 
                 if rhs.isdigit():
@@ -1381,7 +1381,7 @@ class DbaseFile:
                 func_name = d.get('func_name')
                 func_field = d.get('field')
                 if func_field not in self.field_names and func_field != '*':
-                    raise ValueError(f"Field {func_field} not found for function '{func_name}'")
+                    raise ValueError(f"DbaseFile: Field {func_field} not found for function '{func_name}'")
                 # fieldobjs = {**fieldobjs, **{field_name: f"{func_name}({field_name})"}}
                 has_func_column = True
                 funcfields[field['alias']] = (func_name, func_field)
@@ -1389,11 +1389,11 @@ class DbaseFile:
                 func_name = None
                 func_field = None
                 if field['column'] not in self.field_names:
-                    raise ValueError(f"Field {field['column']} not found")
+                    raise ValueError(f"DbaseFile: Field {field['column']} not found")
                 fieldobjs = {**fieldobjs, **{field['column']: field['alias']}}
 
         if len(funcfields) and len(fieldobjs):
-            raise ValueError("Cannot mix function columns with regular columns")
+            raise ValueError("DbaseFile: Cannot mix function columns with regular columns")
 
         if not has_func_column:
             for field in fieldobjs:
@@ -1437,9 +1437,24 @@ class DbaseFile:
         :returns Cursor object with the results of the UPDATE command.
         """
 
+        # parsed = sql_parser.parsed
+        # response = self.parse_conditions(parsed['where'])[0][0]
+        # field_param, value_param, compare_function = response
+        # filteredrecords = self.filter(field_param, value_param, compare_function=compare_function)
+
         parsed = sql_parser.parsed
-        field_param, value_param, compare_function = self.parse_conditions(parsed['where'])[0]
-        filteredrecords = self.filter(field_param, value_param, compare_function=compare_function)
+        ands = self.parse_conditions(parsed['where'])
+        filteredrecords = []
+        for ors in ands:
+            orfiltered = []
+            for field_param, value_param, compare_function in ors:
+                newset = [r.metadata.index for r in 
+                          self.filter(field_param, value_param, 
+                                      compare_function=compare_function)]
+                orfiltered = list(set(orfiltered) | set(newset))
+            filteredrecords = list(set(filteredrecords) & set(orfiltered)) if filteredrecords else orfiltered 
+
+        filteredrecords = [self.get_record(i) for i in filteredrecords]
 
         numupdated = len(filteredrecords)
         # pairs = [re.split(r"\s*,\s*", pair) for pair in parsed['updates']]
@@ -1492,13 +1507,13 @@ class DbaseFile:
         # values = [coerce_number(v.strip().strip("'")) for v in sql_parser._values.split(",")]
         values = [coerce_number(v.strip().strip("'")) for v in parsed.get('values')]
         if len(values) != len(self.fields):
-            raise ValueError(f"Wrong number of fields: expected {len(self.fields)}, got {len(values)}") 
+            raise ValueError(f"DbaseFile: Wrong number of fields: expected {len(self.fields)}, got {len(values)}") 
         if values[0] == '?':
             if not len(args):
-                raise ValueError("No values specified. When using '?' in the SQL command, values must be passed as arguments.")
+                raise ValueError("DbaseFile: No values specified. When using '?' in the SQL command, values must be passed as arguments.")
             real_values = [coerce_number(v) for v in args]
             if len(real_values) != len(self.fields):
-                raise ValueError(f"Wrong number of fields: expected {len(self.fields)}, got {len(real_values)}") 
+                raise ValueError(f"DbaseFile: Wrong number of fields: expected {len(self.fields)}, got {len(real_values)}") 
             values = real_values               
         self.add_record(*values)
         cursor = Cursor(description=[(0, 'records', 'records', 'N', 10, 0)], records=(n for n in [1]))
@@ -1520,7 +1535,7 @@ class DbaseFile:
             sql_parser = sql_cmd
         sql_type = sql_parser.parsed['command']
         if sql_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
-            raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
+            raise ValueError("DbaseFile: Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
         if sql_type == 'SELECT':
             return self._execute_select(sql_parser, args)
         elif sql_type == 'INSERT':
@@ -1559,7 +1574,7 @@ class DbaseFile:
                 self.make_mdx(field.name)
             return
         if fieldname not in self.field_names:
-            raise ValueError(f"Field {fieldname} not found")
+            raise ValueError(f"DbaseFile: Field {fieldname} not found")
         def do_index(fieldname):
             self.indexes[fieldname] = {}
             for i, record in enumerate(self):
@@ -1594,7 +1609,7 @@ class DbaseFile:
                 del self.indexes[entry]
                 self._save_mdx()
             else:
-                raise ValueError(f"Index {entry} not found")
+                raise ValueError(f"DbaseFile: Index {entry} not found")
 
 
 @dataclass
@@ -1647,7 +1662,7 @@ class Cursor:
 
     def execute(self, sql:str|SQLParser, args=[]):
         if not self._connection:
-            raise ValueError("No connection, cannot execute SQL command")
+            raise ValueError("Cursor: No connection, cannot execute SQL command")
         return self._connection.execute(sql, args)
     
 
@@ -1673,7 +1688,7 @@ class Connection:
             if os.path.isdir(dirname):
                 pass
             else:
-                raise ValueError(f"{dirname} is not a directory")
+                raise ValueError(f"DbaseFile: {dirname} is not a directory")
         else:
             os.makedirs(dirname)
 
@@ -1737,14 +1752,14 @@ class Connection:
             sql_parser = sql
         sql_parser_type = sql_parser.parsed['command']
         if sql_parser_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
-            raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
+            raise ValueError("Connection: Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
         parsertable = sql_parser.parsed['tables'][0]
         for i, table in enumerate(self.tables):
             if table == parsertable:
                 dbf = DbaseFile(self.filenames[i])
                 cursor = dbf.execute(sql_parser, args)
                 return cursor
-        raise ValueError(f"Table '{parsertable}' not found")
+        raise ValueError(f"DbaseFile: Table '{parsertable}' not found")
 
 
 def connect(dirname:str):
@@ -1876,6 +1891,19 @@ def test_pybase3():
 
     subprocess.run(['clear'])
     conn = connect('db')
+
+    sql = """update teams set titles = 2 where id = 6;"""
+    print()
+    print(sql)
+    print()
+    curr = conn.execute(sql)
+    print(curr.description)
+    print()
+    print(curr.fetchone())
+    print()
+    return
+
+#############################################################
 
     sql = "select id as Id, nombre as Team, titles as Titles from teams where id < 2 or id > 2 and titles > 40;"
     curr = conn.execute(sql)
