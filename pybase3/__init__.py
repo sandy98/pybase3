@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.11"
+__version__ = "1.99.13"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -1496,7 +1496,7 @@ class DbaseFile:
         cursor.rowsaffected = 1
         return cursor
     
-    def execute(self, sql_cmd: str, args=[]):
+    def execute(self, sql_cmd: str|SQLParser, args=[]):
         """
         Executes a SQL command on the database.
         
@@ -1505,7 +1505,10 @@ class DbaseFile:
         :returns Cursor object with the results of the SQL command.
         """
 
-        sql_parser = SQLParser(sql_cmd)
+        if isinstance(sql_cmd, str):
+            sql_parser = SQLParser(sql_cmd)
+        else:
+            sql_parser = sql_cmd
         sql_type = sql_parser.parsed['command']
         if sql_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
             raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
@@ -1633,7 +1636,7 @@ class Cursor:
                 break
         return retval
 
-    def execute(self, sql:str, args=[]):
+    def execute(self, sql:str|SQLParser, args=[]):
         if not self._connection:
             raise ValueError("No connection, cannot execute SQL command")
         return self._connection.execute(sql, args)
@@ -1712,15 +1715,17 @@ class Connection:
 
         return Cursor(_connection=self)
     
-    def execute(self, sql:str, args=[]) -> Cursor:
+    def execute(self, sql:str|SQLParser, args=[]) -> Cursor:
         """
         Executes a SQL command on the database file specified within it.
         
         :params sql: SQL command to execute.
         :returns: Cursor object with the results of the SQL command.
         """
-
-        sql_parser = SQLParser(sql)
+        if isinstance(sql, str):
+            sql_parser = SQLParser(sql)
+        else:
+            sql_parser = sql
         sql_parser_type = sql_parser.parsed['command']
         if sql_parser_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
             raise ValueError("Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
@@ -1728,7 +1733,7 @@ class Connection:
         for i, table in enumerate(self.tables):
             if table == parsertable:
                 dbf = DbaseFile(self.filenames[i])
-                cursor = dbf.execute(sql, args)
+                cursor = dbf.execute(sql_parser, args)
                 return cursor
         raise ValueError(f"Table '{parsertable}' not found")
 
