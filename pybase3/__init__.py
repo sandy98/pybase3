@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.9"
+__version__ = "1.99.11"
 __author__ = "Domingo fE. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
@@ -70,7 +70,7 @@ except ImportError:
 to_bytes = lambda x: x.encode('latin1') if type(x) == str else x
 to_str = lambda x: x.decode('latin1') if type(x) == bytes else x
 
-# getYear = lambda: datetime.now().year - 1900
+# lambda functions to get the current year, month and day for the dBase file header
 getYear = lambda: datetime.now().year - 2000
 getMonth = lambda: datetime.now().month
 getDay = lambda: datetime.now().day

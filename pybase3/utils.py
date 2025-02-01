@@ -38,6 +38,10 @@ class SmartDict(dict):
 
 
 def undot(dotted):
+    """
+    Return the value of a dotted string expression, 
+    in a dictionary, treating the left side as the object and the right side as the key.
+    """
     objstr, keystr = dotted.split(".")
     try:
         obj = eval(objstr)
@@ -48,6 +52,8 @@ def undot(dotted):
         return None
     
 def coerce_number(value):
+    """Coerces a string to an int or float if possible"""
+
     try:
         return int(value)
     except ValueError:

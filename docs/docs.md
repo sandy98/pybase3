@@ -1,16 +1,5 @@
 # pybase3 Documentation
 
-## Any
-
-Special type indicating an unconstrained type.
-
-- Any is compatible with every type.
-- Any assumed to have all methods.
-- All values assumed to be instances of Any.
-
-Note that all the above statements are true from the point of view of
-static type checkers. At runtime, Any should not be used with instance
-checks.
 
 ## BoxType
 
@@ -72,45 +61,6 @@ Methods:
 
 Class to represent the header of a DBase III database file.
 
-## Enum
-
-Create a collection of name/value pairs.
-
-Example enumeration:
-
->>> class Color(Enum):
-...     RED = 1
-...     BLUE = 2
-...     GREEN = 3
-
-Access them by:
-
-- attribute access::
-
->>> Color.RED
-<Color.RED: 1>
-
-- value lookup:
-
->>> Color(1)
-<Color.RED: 1>
-
-- name lookup:
-
->>> Color['RED']
-<Color.RED: 1>
-
-Enumerations can be iterated over, and know how many members they have:
-
->>> len(Color)
-3
-
->>> list(Color)
-[<Color.RED: 1>, <Color.BLUE: 2>, <Color.GREEN: 3>]
-
-Methods can be added to enumerations, and members can have their own
-attributes -- see the documentation for details.
-
 ## FieldType
 
 Enum for dBase III field types.
@@ -134,47 +84,15 @@ The test() function demonstrates how to use the SQLParser class.
 
 SmartDict class with attributes equating dict keys
 
-## Thread
-
-A class that represents a thread of control.
-
-This class can be safely subclassed in a limited fashion. There are two ways
-to specify the activity: by passing a callable object to the constructor, or
-by overriding the run() method in a subclass.
-
-## ThreadPool
-
-Class which supports an async version of applying functions to arguments.
 
 ## coerce_number
 
-No documentation available.
+Coerces a string to an int or float if possible.
 
 ## connect
 
 Returns a Connection object for the specified directory.
 
-## dataclass
-
-Add dunder methods based on the fields defined in the class.
-
-Examines PEP 526 __annotations__ to determine fields.
-
-If init is true, an __init__() method is added to the class. If repr
-is true, a __repr__() method is added. If order is true, rich
-comparison dunder methods are added. If unsafe_hash is true, a
-__hash__() method is added. If frozen is true, fields may not be
-assigned to after instance creation. If match_args is true, the
-__match_args__ tuple is added. If kw_only is true, then by default
-all fields are keyword-only. If slots is true, a new class with a
-__slots__ attribute is returned.
-
-## datetime
-
-datetime(year, month, day[, hour[, minute[, second[, microsecond[,tzinfo]]]]])
-
-The year, month and day arguments are required. tzinfo may be None, or an
-instance of a tzinfo subclass. The remaining arguments may be ints.
 
 ## field
 
@@ -195,15 +113,15 @@ It is an error to specify both default and default_factory.
 
 ## getDay
 
-No documentation available.
+Gets day of last write to dbf file.
 
 ## getMonth
 
-No documentation available.
+Gets month of last write to dbf file.
 
 ## getYear
 
-No documentation available.
+Gets year (0-100, 0 for 2000, 99 for 2099) of last write to dbf file.
 
 ## make_bottomline
 
@@ -231,7 +149,7 @@ Returns the intermediate (line joiner) line of a table-like object of the type s
 
 ## make_list_lines
 
-No documentation available.
+Generates all the lines for a table-like object , 'list lines' like sqlite3 style
 
 ## make_pretty_table_lines
 
@@ -251,9 +169,9 @@ Returns the top line of a table-like object of the type specified by linetype
 
 ## to_bytes
 
-No documentation available.
+Coerces a string-like object to bytes using the given encoding, or default utf-8.
 
 ## to_str
 
-No documentation available.
+Coerces a string-like object to string (decodes it) using the given encoding, or default utf-8.
 
