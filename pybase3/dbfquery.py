@@ -165,6 +165,20 @@ Type 'help' for help.\n
         finally:
             print()
             
+    def do_create(self, line):
+        """
+        Creates a new table in the current directory.
+        Usage: create table <tablename> (<field1> <type1>, <field2> <type2>, ...);"""
+        line = f"create {line}{';' if not line.endswith(';') else ''}"
+        print()
+        try:
+            resp = self.connection.execute(line)
+            print(f"Table created: {resp}")
+        except Exception as e:
+            print(e)
+        finally:
+            print()
+            
     def do_select(self, line):
         """Executes an SQL 'select' command"""
         line = f"select {line}{';' if not line.endswith(';') else ''}"

@@ -11,6 +11,7 @@ venv-dbase-iii/
 *.pyc
 *.pyo
 *.bak
+*.dbf
 kids.url
 test.dbf
 test*.dbf

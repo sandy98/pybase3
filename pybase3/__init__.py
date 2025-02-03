@@ -39,8 +39,8 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "1.99.19"
-__author__ = "Domingo fE. Savoretti"
+__version__ = "2.1.1"
+__author__ = "Domingo E. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
 __url__ = "https://github.com/sandy98/pybase3"
@@ -1728,6 +1728,41 @@ class Connection:
 
         return Cursor(_connection=self)
     
+    sql_fieldsmap = {
+        'integer': 'N',
+        'float': 'F',
+        'text': 'C',
+        'date': 'D',
+        'boolean': 'L'
+    }
+
+    def _execute_create(self, sql_parser: SQLParser, args=[]):
+        """
+        Receives a parsed SQL CREATE command and creates a new dbf table.
+        
+        :param sql_parser: SQLParser object with the parsed SQL command.
+        :returns <tablename> on success. Raises ValueError on failure.
+        """
+
+        parsed = sql_parser.parsed
+        table_name = parsed['tables'][0]
+        fields = parsed['columns']
+        newfields = []
+        for k, v in fields.items():
+            if v not in self.sql_fieldsmap:
+                raise ValueError(f"DbaseFile: Field type {v} not supported")
+            ftype = self.sql_fieldsmap[v]
+            length = 8 if ftype == 'N' or ftype == 'F' or ftype == 'D' else 50 if ftype == 'C' else 1
+            decimals = 2 if ftype == 'F' else 0
+            newfields.append((k, ftype, length, decimals))
+        dbffile = os.path.join(self.dirname, f"{table_name}.dbf")
+        if os.path.exists(dbffile):
+            raise ValueError(f"DbaseFile: Table '{table_name}' already exists")
+        dbf = DbaseFile.create(dbffile, newfields)       
+        self.tables.append(table_name)
+        self._files.append(dbf.filename)
+        return table_name
+        
     def execute(self, sql:str|SQLParser, args=[]) -> Cursor:
         """
         Executes a SQL command on the database file specified within it.
@@ -1740,8 +1775,12 @@ class Connection:
         else:
             sql_parser = sql
         sql_parser_type = sql_parser.parsed['command']
-        if sql_parser_type not in ['SELECT', 'INSERT', 'DELETE', 'UPDATE']:
-            raise ValueError("Connection: Only SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
+        if sql_parser_type not in ['CREATE', 'SELECT', 'INSERT', 'DELETE', 'UPDATE']:
+            raise ValueError("Connection: Only CREATE, SELECT, INSERT, UPDATE and DELETE commands are supported right now.")
+        
+        if sql_parser_type == 'CREATE':
+            return self._execute_create(sql_parser, args)
+        
         parsertable = sql_parser.parsed['tables'][0]
         for i, table in enumerate(self.tables):
             if table == parsertable:
@@ -1880,6 +1919,20 @@ def test_pybase3():
 
     subprocess.run(['clear'])
     conn = connect('db')
+
+    sql = """create table porquerias (id integer, descripcion text, cantidad integer);"""
+    print()
+    print(sql)
+    print()
+    try:
+        tablename = conn.execute(sql)
+        print(tablename)
+    except Exception as e:
+        print(e)
+    print()
+    return
+
+#############################################################
 
     sql = """update teams set titles = 2 where id = 6;"""
     print()

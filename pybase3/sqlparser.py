@@ -19,7 +19,7 @@ class SQLParser:
    
     """
 
-    sqlkeywords = ["SELECT", "INSERT", "UPDATE", "DELETE", "VALUES", "INTO",
+    sqlkeywords = ["CREATE", "SELECT", "INSERT", "UPDATE", "DELETE", "VALUES", "INTO",
                    "FROM", "WHERE", "ORDER", "BY", "AS", 
                    "LIKE", "SET", "AND", "OR", "NOT", 
                    "IS", "NULL"]
@@ -91,11 +91,22 @@ class SQLParser:
         """
         
         if not len(self.tokens):
-            raise ValueError("Invalid SQL statement or failure to invoke tokenizer.")
+            raise ValueError("SQLParser: Invalid SQL statement or failure to invoke tokenizer.")
         
         parsed = {}
 
-        if self.tokens[self.pos].upper() == "SELECT":
+        
+        if self.tokens[self.pos].upper() == "CREATE":
+            parsed["command"] = "CREATE"
+            self.pos += 1
+            if self.tokens[self.pos].upper() != "TABLE":
+                raise ValueError("SQLParser: Invalid SQL statement. CREATE clause must be followed by TABLE.")
+            self.pos += 1
+            parsed["tables"] = [self.tokens[self.pos]]
+            self.pos += 1
+            parsed["columns"] = self.parse_new_columns()
+
+        elif self.tokens[self.pos].upper() == "SELECT":
             parsed["command"] = "SELECT"
             self.pos += 1
             parsed["columns"] = self.parse_columns()
@@ -108,17 +119,17 @@ class SQLParser:
             if self.tokens[self.pos].upper() == "INTO":
                 self.pos += 1
                 if self.tokens[self.pos] == ";":
-                    raise ValueError("Invalid SQL statement. No table name found after INTO.")
+                    raise ValueError("SQLParser: Invalid SQL statement. No table name found after INTO.")
                 parsed["tables"] = [self.tokens[self.pos]]
             else:
-                raise ValueError("Invalid SQL statement. INSERT clause must be followed by INTO.")
+                raise ValueError("SQLParser: Invalid SQL statement. INSERT clause must be followed by INTO.")
             parsed["values"] = self.parse_values()
         elif self.tokens[self.pos].upper() == "UPDATE":
             # raise NotImplementedError("UPDATE command not supported yet.")
             parsed["command"] = "UPDATE"
             self.pos += 1
             if self.tokens[self.pos] == ";":
-                raise ValueError("Invalid SQL statement. No table name found after UPDATE.")
+                raise ValueError("SQLParser: Invalid SQL statement. No table name found after UPDATE.")
             parsed["tables"] = [self.tokens[self.pos]]
             self.pos += 1
             parsed["updates"] = self.parse_updates()
@@ -128,11 +139,11 @@ class SQLParser:
             parsed["command"] = "DELETE"
             self.pos += 1
             if self.tokens[self.pos] == ";":
-                raise ValueError("Invalid SQL statement. No table name found after DELETE.")
+                raise ValueError("SQLParser: Invalid SQL statement. No table name found after DELETE.")
             elif self.tokens[self.pos].upper() == "*":
                 self.pos += 1
             if self.tokens[self.pos].upper() != "FROM":
-                raise ValueError("Invalid SQL statement. No FROM clause found after DELETE.")
+                raise ValueError("SQLParser: Invalid SQL statement. No FROM clause found after DELETE.")
             self.pos += 1
             parsed["tables"] = [self.tokens[self.pos]]     
             parsed["where"] = self.parse_where()
@@ -145,7 +156,7 @@ class SQLParser:
                     entry['table'] = parsed.get('tables')[0]
                 else:
                     if entry['table'] not in parsed.get('tables'):
-                        raise ValueError(f"Invalid SQL statement. Table {entry['table']} not found.")  
+                        raise ValueError(f"SQLParser: Invalid SQL statement. Table {entry['table']} not found.")  
         
         return parsed
 
@@ -158,7 +169,7 @@ class SQLParser:
     
         updates = []
         if self.tokens[self.pos] != "SET":
-            raise ValueError("Invalid SQL UPDATE statement. No SET clause found.")
+            raise ValueError("SQLParser: Invalid SQL UPDATE statement. No SET clause found.")
         self.pos += 1
         while self.pos < endmark:
             if self.tokens[self.pos] != ";":
@@ -166,14 +177,31 @@ class SQLParser:
             self.pos += 1
         return updates
     
-    def parse_columns(self):
+    def parse_new_columns(self):
         """
-        Parse the columns in the SQL statement.
+        Parse the columns in the SQL CREATE TABLE statement.
         
         Returns:
             list: A list of columns.
         
         """
+
+        columns = {}
+
+        while self.tokens[self.pos] != ";":
+            columns[self.tokens[self.pos]] = self.tokens[self.pos + 1]
+            self.pos += 2
+        return columns
+
+    def parse_columns(self):
+        """
+        Parse the columns in the SQL SELECT statement.
+        
+        Returns:
+            list: A list of columns.
+        
+        """
+ 
         columns = []
 
         self.pos = 1
@@ -209,7 +237,7 @@ class SQLParser:
         # self.pos += 1
         pos = self.tokens.index("FROM")
         if pos == -1:
-            raise ValueError("Invalid SQL statement. No FROM clause found.")
+            raise ValueError("SQLParser: Invalid SQL statement. No FROM clause found.")
         self.pos = pos + 1
 
         endmark = len(self.tokens)
@@ -287,7 +315,7 @@ class SQLParser:
         # self.pos += 1
         pos = self.tokens.index("VALUES")
         if pos == -1:
-            raise ValueError("Invalid SQL statement. No VALUES clause found.")
+            raise ValueError("SQLParser: Invalid SQL statement. No VALUES clause found.")
         self.pos = pos + 1
 
         endmark = len(self.tokens)
@@ -310,37 +338,53 @@ def test():
     """
     subprocess.run(["clear"])
 
+    print("Testing CREATE statement:")
+    sql = "create table teams (id integer, nombre text, titles integer);"
+    print (f"'{sql}'\n")
+    parser = SQLParser(sql)
+    for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
+    resp = input("\nPress <Enter> to continue or 'q' to quit ") 
+    if resp.lower().strip() == 'q': return
+
     print("Testing SELECT statement:")
     sql = "SELECT first_name, last_name, employees.age AS years FROM employees WHERE age > 30 order by last_name asc;"
     print (f"'{sql}'\n")
     parser = SQLParser(sql)
     for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
-    input("\nPress <Enter> to continue...\n")
-    print("Testing SELECT statement with function column:")
+    resp = input("\nPress <Enter> to continue or 'q' to quit ") 
+    if resp.lower().strip() == 'q': return
+    
     # sql = "SELECT avg(salary) as AvSalary FROM employees WHERE age > 30 ;"
     sql = "select sum(titles) as Cantidad from teams;"
     print (f"'{sql}'\n")
     parser = SQLParser(sql)
     for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
-    input("\nPress <Enter> to continue...\n")
+    resp = input("\nPress <Enter> to continue or 'q' to quit ") 
+    if resp.lower().strip() == 'q': return
+    
     print("Testing INSERT statement:")
     sql = "INSERT INTO employees VALUES ('John', 'Doe', 35);"
     print (f"'{sql}'\n")
     parser = SQLParser(sql)
     for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
-    input("\nPress <Enter> to continue...\n")
+    resp = input("\nPress <Enter> to continue or 'q' to quit ") 
+    if resp.lower().strip() == 'q': return
+    
     print("Testing UPDATE statement:")
     sql = "UPDATE employees SET age = 36 WHERE last_name = 'Doe';"
     print (f"'{sql}'\n")
     parser = SQLParser(sql)
     for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
-    input("\nPress <Enter> to continue...\n")
+    resp = input("\nPress <Enter> to continue or 'q' to quit ") 
+    if resp.lower().strip() == 'q': return
+    
     print("Testing DELETE statement:")
     sql = "DELETE FROM employees WHERE last_name = 'Doe';"
     print (f"'{sql}'\n")
     parser = SQLParser(sql)
     for key in parser.parsed: print(f"{key} = {parser.parsed[key]}")
-    input("\nPress <Enter> to continue...\n")
+    resp = input("\nPress <Enter>\n") 
+    
 
 
 if __name__ == "__main__":
