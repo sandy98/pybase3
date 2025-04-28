@@ -39,7 +39,7 @@ CLI scripts:
 # Title: dBase III File Reader and Writer
 
 # Description:
-__version__ = "2.1.1"
+__version__ = "2.1.5"
 __author__ = "Domingo E. Savoretti"
 __email__ = "esavoretti@gmail.com"
 __license__ = "MIT"
